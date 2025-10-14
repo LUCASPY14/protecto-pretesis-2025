@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="max-w-4xl mx-auto">
+    <!-- Encabezado -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" 
+                       class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Gestión Manual de Tarjeta</h1>
+                        <p class="text-sm text-gray-600">{{ hijo.nombre_completo }} - {{ hijo.grado }}{{ hijo.seccion|default:"" }}</p>
+                    </div>
+                </div>
+                
+                {% if hijo.numero_tarjeta %}
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Tarjeta Actual</p>
+                    <p class="font-mono text-lg font-medium">{{ hijo.numero_tarjeta_oculto }}</p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if hijo.tarjeta_activa %}
+                            bg-green-100 text-green-800
+                        {% else %}
+                            bg-red-100 text-red-800
+                        {% endif %}">
+                        {{ hijo.tarjeta_activa|yesno:"Activa,Inactiva" }}
+                    </span>
+                </div>
+                {% else %}
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Sin tarjeta asignada</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Actual de la Tarjeta -->
+    {% if hijo.numero_tarjeta %}
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Información Actual</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Número de Tarjeta</dt>
+                    <dd class="mt-1 text-sm text-gray-900 font-mono">{{ hijo.numero_tarjeta_formateado }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                    <dd class="mt-1">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if hijo.tarjeta_activa %}
+                                bg-green-100 text-green-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ hijo.tarjeta_activa|yesno:"Activa,Inactiva" }}
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Fecha de Asignación</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {% if hijo.fecha_asignacion_tarjeta %}
+                            {{ hijo.fecha_asignacion_tarjeta|date:"d/m/Y H:i" }}
+                        {% else %}
+                            No disponible
+                        {% endif %}
+                    </dd>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulario de Gestión -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Acciones Disponibles</h2>
+            <p class="mt-1 text-sm text-gray-600">
+                Seleccione la acción que desea realizar sobre la tarjeta
+            </p>
+        </div>
+        
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- Selección de Acción -->
+            <div>
+                <label class="text-base font-medium text-gray-900">Acción a Realizar</label>
+                <p class="text-sm leading-5 text-gray-500">Seleccione qué operación desea ejecutar</p>
+                <fieldset class="mt-4">
+                    <div class="space-y-4">
+                        {% for choice in form.accion %}
+                            <div class="flex items-center">
+                                {{ choice.tag }}
+                                <label for="{{ choice.id_for_label }}" class="ml-3 block text-sm font-medium text-gray-700">
+                                    {{ choice.choice_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                {% if form.accion.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.accion.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Campos para Asignación Manual -->
+            <div id="campos-asignacion" class="hidden space-y-4 bg-gray-50 p-4 rounded-md">
+                <h4 class="text-md font-medium text-gray-900">Datos de la Nueva Tarjeta</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.numero_tarjeta.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.numero_tarjeta.label|default:"Número de Tarjeta" }}
+                        </label>
+                        {{ form.numero_tarjeta }}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.numero_tarjeta.help_text }}</p>
+                        {% if form.numero_tarjeta.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.numero_tarjeta.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.codigo_seguridad.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.codigo_seguridad.label|default:"Código de Seguridad" }}
+                        </label>
+                        {{ form.codigo_seguridad }}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.codigo_seguridad.help_text }}</p>
+                        {% if form.codigo_seguridad.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.codigo_seguridad.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos de Solo Lectura (si existen) -->
+            {% if form.numero_actual %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">{{ form.numero_actual.label }}</label>
+                    {{ form.numero_actual }}
+                </div>
+                {% if form.estado_actual %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">{{ form.estado_actual.label }}</label>
+                    {{ form.estado_actual }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Advertencia -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            Importante
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>
+                                Todas las operaciones sobre tarjetas son registradas para auditoría. 
+                                Asegúrese de seleccionar la acción correcta antes de continuar.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" 
+                   class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cantina-primary">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="bg-cantina-primary py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-cantina-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cantina-primary">
+                    Ejecutar Acción
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('input[name="accion"]');
+    const camposAsignacion = document.getElementById('campos-asignacion');
+    const numeroInput = document.getElementById('id_numero_tarjeta');
+    const codigoInput = document.getElementById('id_codigo_seguridad');
+
+    function toggleCamposAsignacion() {
+        const accionSeleccionada = document.querySelector('input[name="accion"]:checked');
+        if (accionSeleccionada && accionSeleccionada.value === 'asignar_manual') {
+            camposAsignacion.classList.remove('hidden');
+        } else {
+            camposAsignacion.classList.add('hidden');
+            if (numeroInput) numeroInput.value = '';
+            if (codigoInput) codigoInput.value = '';
+        }
+    }
+
+    radioButtons.forEach(function(radio) {
+        radio.addEventListener('change', toggleCamposAsignacion);
+    });
+
+    // Formatear número de tarjeta
+    if (numeroInput) {
+        numeroInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            let formattedValue = value.replace(/(.{4})(?=.)/g, '$1-');
+            if (formattedValue.length > 19) {
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            this.value = formattedValue;
+        });
+    }
+
+    // Solo números para código
+    if (codigoInput) {
+        codigoInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length > 4) {
+                this.value = this.value.substring(0, 4);
+            }
+        });
+    }
+
+    // Confirmación antes de enviar
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const accionSeleccionada = document.querySelector('input[name="accion"]:checked');
+        if (!accionSeleccionada) {
+            e.preventDefault();
+            alert('Debe seleccionar una acción a realizar');
+            return;
+        }
+
+        const confirmacion = confirm(`¿Está seguro de ejecutar la acción: ${accionSeleccionada.nextElementSibling.textContent}?`);
+        if (!confirmacion) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

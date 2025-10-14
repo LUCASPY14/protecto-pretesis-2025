@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Hijos - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {% if user.tipo_usuario == 'padre' %}
+                Mis Hijos
+            {% else %}
+                Todos los Hijos
+            {% endif %}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if user.tipo_usuario == 'padre' %}
+                Gestiona los perfiles y saldos de tus hijos
+            {% else %}
+                Lista completa de hijos registrados en el sistema
+            {% endif %}
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        {% if user.tipo_usuario == 'padre' %}
+            <a href="{% url 'usuarios:crear_hijo' %}" class="btn-primary">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Registrar Hijo
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Estadísticas rápidas -->
+    {% if user.tipo_usuario == 'padre' and hijos %}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="card">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Hijos</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ hijos|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Saldo Total</p>
+                        <p class="text-lg font-semibold text-gray-900">
+                            {% widthratio hijos|length 1 1 as total_saldo %}
+                            {% for hijo in hijos %}
+                                {% if forloop.first %}{{ hijo.saldo_virtual|floatformat:0 }}{% endif %}
+                            {% empty %}
+                                0
+                            {% endfor %} Gs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Activos</p>
+                        <p class="text-lg font-semibold text-gray-900">
+                            {% for hijo in hijos %}
+                                {% if hijo.activo %}{{ forloop.counter }}{% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Con Saldo Bajo</p>
+                        <p class="text-lg font-semibold text-gray-900">
+                            {% for hijo in hijos %}
+                                {% if hijo.saldo_virtual < 10000 %}{{ forloop.counter }}{% endif %}
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Lista de hijos -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-lg font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                {% if user.tipo_usuario == 'padre' %}
+                    Lista de Mis Hijos
+                {% else %}
+                    Lista de Todos los Hijos
+                {% endif %}
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            {% if hijos %}
+                <!-- Vista de escritorio -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Hijo
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Grado/Sección
+                                </th>
+                                {% if user.tipo_usuario != 'padre' %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Padre
+                                </th>
+                                {% endif %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Saldo Virtual
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Estado
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for hijo in hijos %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                                            <span class="text-sm font-medium text-white">
+                                                {{ hijo.nombre_completo|first }}
+                                            </span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ hijo.nombre_completo }}
+                                            </div>
+                                            {% if hijo.fecha_nacimiento %}
+                                            <div class="text-xs text-gray-500">
+                                                Nacido el {{ hijo.fecha_nacimiento|date:"d/m/Y" }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {% if hijo.grado %}
+                                            {{ hijo.grado }}
+                                            {% if hijo.seccion %} - {{ hijo.seccion }}{% endif %}
+                                        {% else %}
+                                            <span class="text-gray-400">No especificado</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                {% if user.tipo_usuario != 'padre' %}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {{ hijo.padre.get_full_name }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ hijo.padre.username }}
+                                    </div>
+                                </td>
+                                {% endif %}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium 
+                                        {% if hijo.saldo_virtual < 0 %}text-red-600
+                                        {% elif hijo.saldo_virtual < 10000 %}text-yellow-600
+                                        {% else %}text-green-600
+                                        {% endif %}">
+                                        {{ hijo.saldo_virtual|floatformat:0 }} Gs.
+                                    </div>
+                                    {% if hijo.puede_saldo_negativo %}
+                                    <div class="text-xs text-gray-500">
+                                        Límite: -{{ hijo.limite_saldo_negativo|floatformat:0 }} Gs.
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if hijo.activo %}
+                                        <span class="badge-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge-error">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                    <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" 
+                                       class="text-cantina-primary hover:text-cantina-secondary">
+                                        Ver
+                                    </a>
+                                    {% if user.tipo_usuario == 'padre' or user.tipo_usuario == 'administrador' %}
+                                    <a href="{% url 'usuarios:recarga_saldo' hijo.pk %}" 
+                                       class="text-green-600 hover:text-green-500">
+                                        Recargar
+                                    </a>
+                                    <a href="{% url 'usuarios:editar_hijo' hijo.pk %}" 
+                                       class="text-blue-600 hover:text-blue-500">
+                                        Editar
+                                    </a>
+                                    {% if user.tipo_usuario == 'administrador' %}
+                                    <a href="{% url 'usuarios:eliminar_hijo' hijo.pk %}" 
+                                       class="text-red-600 hover:text-red-500">
+                                        Eliminar
+                                    </a>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Vista móvil -->
+                <div class="md:hidden space-y-4 p-4">
+                    {% for hijo in hijos %}
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-medium text-white">
+                                        {{ hijo.nombre_completo|first }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900">{{ hijo.nombre_completo }}</h3>
+                                    <p class="text-xs text-gray-500">
+                                        {% if hijo.grado %}
+                                            {{ hijo.grado }}{% if hijo.seccion %} - {{ hijo.seccion }}{% endif %}
+                                        {% else %}
+                                            Sin grado asignado
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% if hijo.activo %}
+                                <span class="badge-success">Activo</span>
+                            {% else %}
+                                <span class="badge-error">Inactivo</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-3 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500">Saldo Virtual</p>
+                                <p class="text-sm font-medium 
+                                    {% if hijo.saldo_virtual < 0 %}text-red-600
+                                    {% elif hijo.saldo_virtual < 10000 %}text-yellow-600
+                                    {% else %}text-green-600
+                                    {% endif %}">
+                                    {{ hijo.saldo_virtual|floatformat:0 }} Gs.
+                                </p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" 
+                                   class="btn-sm btn-outline">
+                                    Ver
+                                </a>
+                                {% if user.tipo_usuario == 'padre' or user.tipo_usuario == 'administrador' %}
+                                <a href="{% url 'usuarios:recarga_saldo' hijo.pk %}" 
+                                   class="btn-sm btn-primary">
+                                    Recargar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Estado vacío -->
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">
+                        {% if user.tipo_usuario == 'padre' %}
+                            No tienes hijos registrados
+                        {% else %}
+                            No hay hijos registrados
+                        {% endif %}
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {% if user.tipo_usuario == 'padre' %}
+                            Comienza registrando a tu primer hijo en el sistema.
+                        {% else %}
+                            Los padres pueden registrar a sus hijos desde su panel.
+                        {% endif %}
+                    </p>
+                    {% if user.tipo_usuario == 'padre' %}
+                    <div class="mt-6">
+                        <a href="{% url 'usuarios:crear_hijo' %}" class="btn-primary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Registrar Primer Hijo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user.tipo_usuario == 'padre' and hijos %}
+    <!-- Consejos y ayuda -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-lg font-medium">Consejos para Padres</h3>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">Control de Saldo</h3>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>Mantén el saldo de tus hijos siempre actualizado. Recarga antes de que se agote para evitar que se queden sin almuerzo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-green-800">Historial de Compras</h3>
+                            <div class="mt-2 text-sm text-green-700">
+                                <p>Revisa regularmente qué están comprando tus hijos en la cantina desde la página de detalles de cada hijo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

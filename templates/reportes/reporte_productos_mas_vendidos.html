@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Productos Más Vendidos - La Cantina de Tita{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ titulo }}</h1>
+            <p class="text-gray-600">Análisis detallado de ventas por producto</p>
+        </div>
+        <a href="{% url 'reportes:lista_reportes' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Volver
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Filtros</h2>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Desde</label>
+                <input type="date" name="fecha_desde" value="{{ fecha_desde }}" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                <select name="categoria_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}" {% if categoria.id == categoria_id %}selected{% endif %}>
+                        {{ categoria.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-search mr-2"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tendencias de Venta -->
+    {% if tendencias %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Tendencias de los Últimos 7 Días</h2>
+        <div class="grid grid-cols-7 gap-2">
+            {% for dia in tendencias %}
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-xs text-gray-600 mb-1">{{ dia.fecha|date:"d/m" }}</div>
+                <div class="text-lg font-bold text-blue-600">{{ dia.total_items }}</div>
+                <div class="text-xs text-gray-600">${{ dia.total_ingresos|floatformat:0 }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Análisis por Categorías -->
+    {% if categorias_analysis %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Análisis por Categorías</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for categoria in categorias_analysis %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 class="font-semibold text-gray-800 mb-2">{{ categoria.producto__categoria__nombre }}</h3>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Productos:</span>
+                        <span class="font-medium">{{ categoria.total_productos }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Cantidad vendida:</span>
+                        <span class="font-medium text-blue-600">{{ categoria.cantidad_vendida }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Ingresos:</span>
+                        <span class="font-medium text-green-600">${{ categoria.total_ingresos|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de Productos Más Vendidos -->
+    {% if productos_vendidos %}
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800">Ranking de Productos</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posición</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad Vendida</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingresos Totales</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transacciones</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Unitario</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for producto in productos_vendidos %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                {% if forloop.counter <= 3 %}
+                                    {% if forloop.counter == 1 %}
+                                    <i class="fas fa-trophy text-yellow-500 text-xl mr-2"></i>
+                                    {% elif forloop.counter == 2 %}
+                                    <i class="fas fa-medal text-gray-400 text-xl mr-2"></i>
+                                    {% else %}
+                                    <i class="fas fa-award text-orange-600 text-xl mr-2"></i>
+                                    {% endif %}
+                                {% endif %}
+                                <span class="font-bold text-lg">{{ forloop.counter }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">{{ producto.producto__nombre }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded">
+                                {{ producto.producto__categoria__nombre }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-lg font-bold text-green-600">{{ producto.cantidad_vendida }}</div>
+                            <div class="text-sm text-gray-500">unidades</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-lg font-bold text-blue-600">${{ producto.total_ingresos|floatformat:0 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ producto.num_transacciones }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ producto.producto__precio_venta|floatformat:0 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center py-16">
+            <i class="fas fa-chart-bar text-6xl text-gray-400 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-600 mb-2">No hay datos disponibles</h2>
+            <p class="text-gray-500">No se encontraron ventas en el período seleccionado</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-envío del formulario cuando cambian los filtros
+    const filters = document.querySelectorAll('input[type="date"], select[name="categoria_id"]');
+    filters.forEach(filter => {
+        filter.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

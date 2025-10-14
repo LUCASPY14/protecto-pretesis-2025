@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar {{ usuario.username }} - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Editar Usuario: {{ usuario.username }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Modificar información de {{ usuario.get_tipo_usuario_display|lower }}
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        <a href="{% url 'usuarios:detalle_usuario' usuario.pk %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Cancelar
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Formulario Principal -->
+        <div class="lg:col-span-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-medium flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Editar Información
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Información Personal -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Datos Personales</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Nombres <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="first_name" 
+                                           id="first_name" 
+                                           value="{{ usuario.first_name }}"
+                                           required
+                                           class="form-input">
+                                </div>
+                                
+                                <div>
+                                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Apellidos <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="last_name" 
+                                           id="last_name" 
+                                           value="{{ usuario.last_name }}"
+                                           required
+                                           class="form-input">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Email
+                                    </label>
+                                    <input type="email" 
+                                           name="email" 
+                                           id="email" 
+                                           value="{{ usuario.email|default:'' }}"
+                                           class="form-input">
+                                </div>
+                                
+                                <div>
+                                    <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Teléfono
+                                    </label>
+                                    <input type="tel" 
+                                           name="telefono" 
+                                           id="telefono" 
+                                           value="{{ usuario.telefono|default:'' }}"
+                                           class="form-input"
+                                           pattern="[0-9\-\+\s\(\)]+">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuración del Usuario -->
+                        <div class="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Configuración de Acceso</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {% if usuario.tipo_usuario != 'administrador' %}
+                                <div>
+                                    <label for="tipo_usuario" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Tipo de Usuario
+                                    </label>
+                                    <select name="tipo_usuario" id="tipo_usuario" class="form-select">
+                                        <option value="cajero" {% if usuario.tipo_usuario == 'cajero' %}selected{% endif %}>
+                                            Cajero
+                                        </option>
+                                        <option value="padre" {% if usuario.tipo_usuario == 'padre' %}selected{% endif %}>
+                                            Padre de Familia
+                                        </option>
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Los administradores no pueden cambiar su tipo
+                                    </p>
+                                </div>
+                                {% else %}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        Tipo de Usuario
+                                    </label>
+                                    <div class="form-input bg-gray-100 text-gray-600">
+                                        Administrador (No modificable)
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Los administradores no pueden cambiar su tipo
+                                    </p>
+                                </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <label for="activo" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Estado del Usuario
+                                    </label>
+                                    <div class="mt-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="checkbox" 
+                                                   name="activo" 
+                                                   id="activo" 
+                                                   {% if usuario.activo %}checked{% endif %}
+                                                   class="form-checkbox h-4 w-4 text-cantina-primary">
+                                            <span class="ml-2 text-sm text-gray-700">Usuario activo</span>
+                                        </label>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Los usuarios inactivos no pueden acceder al sistema
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cambio de Contraseña (Opcional) -->
+                        <div class="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
+                            <h4 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                Cambiar Contraseña (Opcional)
+                            </h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Nueva Contraseña
+                                    </label>
+                                    <input type="password" 
+                                           name="password" 
+                                           id="password" 
+                                           minlength="6"
+                                           class="form-input"
+                                           placeholder="Dejar vacío para mantener actual">
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Mínimo 6 caracteres, solo si deseas cambiarla
+                                    </p>
+                                </div>
+                                
+                                <div>
+                                    <label for="password_confirm" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Confirmar Nueva Contraseña
+                                    </label>
+                                    <input type="password" 
+                                           name="password_confirm" 
+                                           id="password_confirm" 
+                                           class="form-input"
+                                           placeholder="Confirmar nueva contraseña">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                            <a href="{% url 'usuarios:detalle_usuario' usuario.pk %}" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn-primary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral de Información -->
+        <div class="space-y-6">
+            <!-- Usuario Actual -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-medium">Usuario Actual</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="flex-shrink-0 mx-auto w-16 h-16 mb-3">
+                        <div class="w-16 h-16 rounded-full bg-cantina-primary flex items-center justify-center">
+                            <span class="text-xl font-bold text-white">
+                                {{ usuario.get_full_name|default:usuario.username|first|upper }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-medium text-gray-900">{{ usuario.get_full_name|default:usuario.username }}</h4>
+                    <p class="text-sm text-gray-500">@{{ usuario.username }}</p>
+                    
+                    <div class="mt-3">
+                        <span class="badge 
+                            {% if usuario.tipo_usuario == 'administrador' %}badge-danger
+                            {% elif usuario.tipo_usuario == 'cajero' %}badge-warning  
+                            {% else %}badge-info{% endif %}">
+                            {{ usuario.get_tipo_usuario_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Seguridad -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-medium">Información del Sistema</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">ID:</span>
+                            <span class="font-mono text-gray-900">#{{ usuario.pk }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Creado:</span>
+                            <span class="text-gray-900">{{ usuario.date_joined|date:"d/m/Y" }}</span>
+                        </div>
+                        {% if usuario.last_login %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Último Acceso:</span>
+                            <span class="text-gray-900">{{ usuario.last_login|date:"d/m/Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advertencias -->
+            <div class="card border-yellow-200 bg-yellow-50">
+                <div class="card-body">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <div class="text-sm">
+                            <h4 class="font-medium text-yellow-800 mb-1">Advertencias Importantes</h4>
+                            <ul class="text-yellow-700 space-y-1">
+                                <li>• Los cambios se aplican inmediatamente</li>
+                                <li>• El usuario será notificado de cambios importantes</li>
+                                {% if usuario.tipo_usuario == 'administrador' %}
+                                <li>• No puedes cambiar el tipo de administrador</li>
+                                {% endif %}
+                                <li>• Desactivar un usuario lo desconectará del sistema</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const passwordConfirmInput = document.getElementById('password_confirm');
+    const form = document.querySelector('form');
+    
+    // Validación de confirmación de contraseña
+    function validatePassword() {
+        if (passwordInput.value && passwordConfirmInput.value) {
+            if (passwordInput.value !== passwordConfirmInput.value) {
+                passwordConfirmInput.setCustomValidity('Las contraseñas no coinciden');
+            } else {
+                passwordConfirmInput.setCustomValidity('');
+            }
+        } else {
+            passwordConfirmInput.setCustomValidity('');
+        }
+    }
+    
+    passwordInput.addEventListener('input', validatePassword);
+    passwordConfirmInput.addEventListener('input', validatePassword);
+    
+    // Validación del formulario al enviar
+    form.addEventListener('submit', function(e) {
+        const firstName = document.getElementById('first_name').value.trim();
+        const lastName = document.getElementById('last_name').value.trim();
+        const password = passwordInput.value;
+        const passwordConfirm = passwordConfirmInput.value;
+        
+        // Validar campos obligatorios
+        if (!firstName || !lastName) {
+            e.preventDefault();
+            alert('Los nombres y apellidos son obligatorios');
+            return false;
+        }
+        
+        // Validar contraseña si se proporciona
+        if (password) {
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('La contraseña debe tener al menos 6 caracteres');
+                return false;
+            }
+            
+            if (password !== passwordConfirm) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden');
+                return false;
+            }
+        }
+        
+        // Confirmación final
+        return confirm('¿Estás seguro de guardar los cambios en este usuario?');
+    });
+    
+    // Mostrar información dinámica según el tipo de usuario
+    const tipoUsuario = document.getElementById('tipo_usuario');
+    if (tipoUsuario) {
+        tipoUsuario.addEventListener('change', function() {
+            const tipo = this.value;
+            let mensaje = '';
+            
+            switch(tipo) {
+                case 'cajero':
+                    mensaje = 'El usuario tendrá acceso al punto de venta y funciones operativas';
+                    break;
+                case 'padre':
+                    mensaje = 'El usuario podrá gestionar hijos y recargar saldos';
+                    break;
+            }
+            
+            if (mensaje) {
+                // Puedes agregar lógica aquí para mostrar el mensaje
+                console.log(mensaje);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

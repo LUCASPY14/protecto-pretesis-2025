@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}La Cantina de Tita{% endblock %}</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dist/output.css' %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome para iconos -->
+    <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header/Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-12 w-auto mr-3">
+                        <h1 class="text-2xl font-bold text-cantina-primary">La Cantina de Tita</h1>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'usuarios:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                                Dashboard
+                            </a>
+                            
+                            {% if user.tipo_usuario == 'administrador' or user.tipo_usuario == 'cajero' %}
+                                <a href="{% url 'ventas:pos_dashboard' %}" class="nav-link {% if 'ventas' in request.resolver_match.namespace %}active{% endif %}">
+                                    Punto de Venta
+                                </a>
+                                <a href="{% url 'productos:lista_productos' %}" class="nav-link {% if 'productos' in request.resolver_match.namespace %}active{% endif %}">
+                                    Productos
+                                </a>
+                            {% endif %}
+                            
+                            {% if user.tipo_usuario == 'administrador' %}
+                                <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link {% if 'facturacion' in request.resolver_match.namespace %}active{% endif %}">
+                                    Facturación
+                                </a>
+                                <a href="{% url 'reportes:lista_reportes' %}" class="nav-link {% if 'reportes' in request.resolver_match.namespace %}active{% endif %}">
+                                    Reportes
+                                </a>
+                                <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link">
+                                    Usuarios
+                                </a>
+                            {% endif %}
+                            
+                            {% if user.tipo_usuario == 'padre' %}
+                                                                <a href="{% url 'usuarios:lista_hijos' %}" class="nav-link">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197H9m6 0a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 21v-1.125c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125V21z"></path>
+                                    </svg>
+                                    Mis Hijos
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- User menu -->
+                <div class="flex items-center">
+                    {% if user.is_authenticated %}
+                        <div class="relative ml-3">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ user.get_full_name|default:user.username }}
+                                    <span class="text-xs text-gray-500">({{ user.get_tipo_usuario_display }})</span>
+                                </span>
+                                <a href="{% url 'usuarios:logout' %}" class="btn-secondary text-sm py-1 px-3">
+                                    Cerrar Sesión
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn-primary">
+                            Iniciar Sesión
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cantina-primary">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div class="md:hidden mobile-menu hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'usuarios:dashboard' %}" class="nav-link block">Dashboard</a>
+                    
+                    {% if user.tipo_usuario == 'administrador' or user.tipo_usuario == 'cajero' %}
+                        <a href="{% url 'ventas:pos_dashboard' %}" class="nav-link block">Punto de Venta</a>
+                        <a href="{% url 'productos:lista_productos' %}" class="nav-link block">Productos</a>
+                    {% endif %}
+                    
+                    {% if user.tipo_usuario == 'administrador' %}
+                        <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link block">Facturación</a>
+                        <a href="{% url 'reportes:lista_reportes' %}" class="nav-link block">Reportes</a>
+                        <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link block">Usuarios</a>
+                    {% endif %}
+                    
+                    {% if user.tipo_usuario == 'padre' %}
+                        <a href="{% url 'usuarios:lista_hijos' %}" class="nav-link block">Mis Hijos</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumbs -->
+        {% block breadcrumbs %}{% endblock %}
+        
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Page Header -->
+        {% block page_header %}{% endblock %}
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex justify-center md:order-2">
+                    <p class="text-sm text-gray-500">
+                        Desarrollado por <strong>LGservice</strong> - WhatsApp: +595985350656
+                    </p>
+                </div>
+                <div class="mt-8 md:mt-0 md:order-1 flex items-center justify-center">
+                    <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-8 w-auto mr-3">
+                    <div class="text-center text-sm text-gray-500">
+                        &copy; 2025 La Cantina de Tita. Asunción, Paraguay.
+                        <br>
+                        Contacto: admin@tita.com | WhatsApp: +595981934107
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+        
+        // Auto-hide messages after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }, 5000);
+        });
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

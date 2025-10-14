@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - La Cantina de Tita</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dist/output.css' %}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <div class="mx-auto flex items-center justify-center">
+                    <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-24 w-auto">
+                </div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    La Cantina de Tita
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Sistema de Gestión de Cantina
+                </p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <p class="font-semibold">Error en el inicio de sesión:</p>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <p class="text-sm">{{ error }}</p>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Usuario
+                            </label>
+                            <div class="mt-1">
+                                {{ form.username }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Contraseña
+                            </label>
+                            <div class="mt-1">
+                                {{ form.password }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="btn-primary w-full flex justify-center py-2 px-4 text-sm font-medium">
+                                Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-sm font-medium text-gray-900 mb-2">Información de Contacto</h3>
+                    <p class="text-xs text-gray-600">
+                        <strong>Email:</strong> admin@tita.com<br>
+                        <strong>WhatsApp:</strong> +595981934107<br>
+                        <strong>Ubicación:</strong> Asunción, Paraguay
+                    </p>
+                    <hr class="my-2 border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        Desarrollado por <strong>LGservice</strong><br>
+                        WhatsApp: +595985350656
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Agregar clases de Tailwind a los campos del formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+            inputs.forEach(input => {
+                input.className = 'form-input';
+            });
+        });
+    </script>
+</body>
+</html>

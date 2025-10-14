@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load currency_filters %}
+
+{% load static %}
+
+{% block title %}Dashboard de Reportes - La Cantina de Tita{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: transform 0.2s;
+    }
+        
+    .metric-card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center">
+            <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-16 w-auto mr-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ titulo }}</h1>
+                <p class="text-gray-600">Análisis y estadísticas de la cantina</p>
+            </div>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="window.print()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-print mr-2"></i>Imprimir
+            </button>
+            <a href="{% url 'reportes:configuracion_reportes' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                <i class="fas fa-cog mr-2"></i>Configuración
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Ventas Hoy -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white metric-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100">Ventas Hoy</p>
+                    <p class="text-3xl font-bold">{{ stats.ventas_hoy }}</p>
+                    <p class="text-blue-100">{{ stats.ingresos_hoy|guaranies }}</p>
+                </div>
+                <i class="fas fa-shopping-cart text-4xl text-blue-200"></i>
+            </div>
+        </div>
+
+        <!-- Productos Vendidos -->
+        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white metric-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100">Productos Vendidos</p>
+                    <p class="text-3xl font-bold">{{ stats.productos_vendidos }}</p>
+                    <p class="text-green-100">{{ stats.categorias_activas }} categorías</p>
+                </div>
+                <i class="fas fa-cube text-4xl text-green-200"></i>
+            </div>
+        </div>
+
+        <!-- Tarjetas Activas -->
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white metric-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100">Tarjetas Activas</p>
+                    <p class="text-3xl font-bold">{{ stats.tarjetas_activas }}</p>
+                    <p class="text-purple-100">{{ stats.saldo_total|guaranies }} en saldo</p>
+                </div>
+                <i class="fas fa-credit-card text-4xl text-purple-200"></i>
+            </div>
+        </div>
+
+        <!-- Promedio de Venta -->
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white metric-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-orange-100">Promedio de Venta</p>
+                    <p class="text-3xl font-bold">{{ stats.promedio_venta|guaranies }}</p>
+                    <p class="text-orange-100">por transacción</p>
+                </div>
+                <i class="fas fa-chart-line text-4xl text-orange-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Reportes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Reporte de Consumo por Hijo -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Consumo por Hijo</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Reportes detallados del consumo individual de cada hijo.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Historial de compras</li>
+                    <li>Productos más consumidos</li>
+                    <li>Análisis de gastos</li>
+                    <li>Tendencias de consumo</li>
+                </ul>
+                <a href="{% url 'reportes:reporte_consumo_hijo' %}" class="btn-primary w-full inline-block text-center">
+                    Generar Reporte
+                </a>
+            </div>
+        </div>
+
+        <!-- Reporte de Productos Más Vendidos -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Productos Más Vendidos</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Análisis de ventas por producto y categoría.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Ranking de productos</li>
+                    <li>Análisis por categorías</li>
+                    <li>Tendencias de venta</li>
+                    <li>Comparativas temporales</li>
+                </ul>
+                <a href="{% url 'reportes:reporte_productos_mas_vendidos' %}" class="btn-primary w-full inline-block text-center">
+                    Generar Reporte
+                </a>
+            </div>
+        </div>
+
+        <!-- Reporte de Ingresos por Método de Pago -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Ingresos por Método de Pago</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Distribución de ingresos según forma de pago.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Efectivo vs. Tarjeta</li>
+                    <li>Comisiones aplicadas</li>
+                    <li>Análisis temporal</li>
+                    <li>Tendencias de pago</li>
+                </ul>
+                <a href="{% url 'reportes:reporte_ingresos_metodo_pago' %}" class="btn-primary w-full inline-block text-center">
+                    Generar Reporte
+                </a>
+            </div>
+        </div>
+
+        <!-- Reporte de Uso de Tarjetas -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Uso de Tarjetas</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Estadísticas del sistema de tarjetas virtuales.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Tarjetas activas/inactivas</li>
+                    <li>Saldos y recargas</li>
+                    <li>Frecuencia de uso</li>
+                    <li>Análisis de padres</li>
+                </ul>
+                <button class="btn-primary w-full" disabled>
+                    Próximamente Disponible
+                </button>
+            </div>
+        </div>
+
+        <!-- Reporte de Inventario -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Estado del Inventario</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Control y análisis del stock de productos.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Stock actual</li>
+                    <li>Productos agotados</li>
+                    <li>Alertas de reposición</li>
+                    <li>Rotación de inventario</li>
+                </ul>
+                <a href="{% url 'reportes:reporte_stock_productos' %}" class="btn-primary w-full inline-block text-center">
+                    Generar Reporte
+                </a>
+            </div>
+        </div>
+
+        <!-- Reporte Financiero -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Reporte Financiero</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">
+                    Análisis integral de la situación financiera.
+                </p>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1 mb-4">
+                    <li>Ingresos y gastos</li>
+                    <li>Márgenes de ganancia</li>
+                    <li>Flujo de efectivo</li>
+                    <li>Proyecciones</li>
+                </ul>
+                <button class="btn-primary w-full" disabled>
+                    Próximamente Disponible
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Rápidos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Ventas por Día -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Ventas de los Últimos 7 Días</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="ventasChart" class="w-full h-64"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Productos -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Top 5 Productos de la Semana</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-3">
+                    {% for producto in top_productos %}
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium">{{ producto.nombre }}</p>
+                            <p class="text-sm text-gray-600">{{ producto.cantidad_vendida }} unidades</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-green-600">{{ producto.ingresos|guaranies }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de ventas por día
+    const ctx = document.getElementById('ventasChart').getContext('2d');
+    const ventasChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ ventas_labels|safe }},
+            datasets: [{
+                label: 'Ventas',
+                data: {{ ventas_data|safe }},
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

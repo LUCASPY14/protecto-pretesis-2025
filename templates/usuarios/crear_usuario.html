@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Usuario - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Crear Nuevo Usuario
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Agregar un usuario al sistema de la cantina
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver a Lista
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Formulario de Creación -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-lg font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                Información del Usuario
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Información de Login -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <h4 class="text-md font-medium text-gray-900 mb-4">Credenciales de Acceso</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre de Usuario <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="username" 
+                                   id="username" 
+                                   required
+                                   class="form-input"
+                                   placeholder="Ej: jperez"
+                                   pattern="[a-zA-Z0-9_]+"
+                                   title="Solo letras, números y guión bajo">
+                            <p class="text-xs text-gray-500 mt-1">Solo letras, números y guión bajo</p>
+                        </div>
+                        
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                                Contraseña <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="password" 
+                                   id="password" 
+                                   required
+                                   minlength="6"
+                                   class="form-input"
+                                   placeholder="Mínimo 6 caracteres">
+                            <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Personal -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="text-md font-medium text-gray-900 mb-4">Datos Personales</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nombres <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="first_name" 
+                                   id="first_name" 
+                                   required
+                                   class="form-input"
+                                   placeholder="Ej: Juan Carlos">
+                        </div>
+                        
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                Apellidos <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="last_name" 
+                                   id="last_name" 
+                                   required
+                                   class="form-input"
+                                   placeholder="Ej: Pérez González">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email
+                            </label>
+                            <input type="email" 
+                                   name="email" 
+                                   id="email" 
+                                   class="form-input"
+                                   placeholder="correo@ejemplo.com">
+                        </div>
+                        
+                        <div>
+                            <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">
+                                Teléfono
+                            </label>
+                            <input type="tel" 
+                                   name="telefono" 
+                                   id="telefono" 
+                                   class="form-input"
+                                   placeholder="0981-234567"
+                                   pattern="[0-9\-\+\s\(\)]+">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración del Usuario -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                    <h4 class="text-md font-medium text-gray-900 mb-4">Configuración de Acceso</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tipo_usuario" class="block text-sm font-medium text-gray-700 mb-1">
+                                Tipo de Usuario <span class="text-red-500">*</span>
+                            </label>
+                            <select name="tipo_usuario" id="tipo_usuario" required class="form-select">
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="administrador">Administrador</option>
+                                <option value="cajero">Cajero</option>
+                                <option value="padre">Padre de Familia</option>
+                            </select>
+                            <p class="text-xs text-gray-600 mt-1" id="tipo_description">
+                                Selecciona el tipo para ver descripción
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label for="activo" class="block text-sm font-medium text-gray-700 mb-1">
+                                Estado del Usuario
+                            </label>
+                            <div class="mt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" 
+                                           name="activo" 
+                                           id="activo" 
+                                           checked
+                                           class="form-checkbox h-4 w-4 text-cantina-primary">
+                                    <span class="ml-2 text-sm text-gray-700">Usuario activo</span>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Los usuarios inactivos no pueden acceder al sistema
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Adicional según Tipo -->
+                <div id="info_adicional" class="border border-yellow-200 rounded-lg p-4 bg-yellow-50 hidden">
+                    <h4 class="text-md font-medium text-gray-900 mb-2">
+                        <svg class="w-5 h-5 inline mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Información Importante
+                    </h4>
+                    <div id="info_content" class="text-sm text-gray-700">
+                        <!-- Contenido dinámico según tipo de usuario -->
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-secondary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Crear Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Guía de Tipos de Usuario -->
+    <div class="card mt-6">
+        <div class="card-header">
+            <h3 class="text-lg font-medium">Guía de Tipos de Usuario</h3>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Administrador -->
+                <div class="border border-red-200 rounded-lg p-4 bg-red-50">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-2 font-semibold text-red-800">Administrador</h4>
+                    </div>
+                    <ul class="text-sm text-red-700 space-y-1">
+                        <li>• Acceso completo al sistema</li>
+                        <li>• Gestión de usuarios</li>
+                        <li>• Configuración general</li>
+                        <li>• Reportes avanzados</li>
+                    </ul>
+                </div>
+
+                <!-- Cajero -->
+                <div class="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-2 font-semibold text-yellow-800">Cajero</h4>
+                    </div>
+                    <ul class="text-sm text-yellow-700 space-y-1">
+                        <li>• Punto de venta (POS)</li>
+                        <li>• Registro de ventas</li>
+                        <li>• Consulta de productos</li>
+                        <li>• Reportes básicos</li>
+                    </ul>
+                </div>
+
+                <!-- Padre -->
+                <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-2 font-semibold text-blue-800">Padre de Familia</h4>
+                    </div>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• Gestión de hijos</li>
+                        <li>• Recarga de saldo</li>
+                        <li>• Historial de consumo</li>
+                        <li>• Control de gastos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoUsuario = document.getElementById('tipo_usuario');
+    const tipoDescription = document.getElementById('tipo_description');
+    const infoAdicional = document.getElementById('info_adicional');
+    const infoContent = document.getElementById('info_content');
+    
+    // Descripciones para cada tipo de usuario
+    const descripciones = {
+        'administrador': {
+            description: 'Acceso completo a todas las funcionalidades del sistema',
+            info: `
+                <p><strong>Como administrador, este usuario podrá:</strong></p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Gestionar todos los usuarios del sistema</li>
+                    <li>Acceder a todas las funciones de punto de venta</li>
+                    <li>Generar y consultar reportes completos</li>
+                    <li>Configurar productos y precios</li>
+                    <li>Supervisar todas las transacciones</li>
+                </ul>
+                <p class="mt-2 text-sm text-yellow-700">
+                    <strong>Importante:</strong> Solo crear administradores para personal de confianza con conocimientos del sistema.
+                </p>
+            `
+        },
+        'cajero': {
+            description: 'Acceso al punto de venta y funciones básicas de operación',
+            info: `
+                <p><strong>Como cajero, este usuario podrá:</strong></p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Operar el punto de venta (POS)</li>
+                    <li>Registrar ventas y procesar pagos</li>
+                    <li>Consultar información de productos</li>
+                    <li>Ver reportes básicos de sus ventas</li>
+                    <li>Gestionar saldos virtuales de hijos</li>
+                </ul>
+                <p class="mt-2 text-sm text-blue-700">
+                    <strong>Recomendado para:</strong> Personal operativo de la cantina.
+                </p>
+            `
+        },
+        'padre': {
+            description: 'Acceso para gestión de hijos y control de consumo',
+            info: `
+                <p><strong>Como padre de familia, este usuario podrá:</strong></p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Registrar y gestionar perfiles de sus hijos</li>
+                    <li>Recargar saldo virtual de sus hijos</li>
+                    <li>Ver historial de consumo y compras</li>
+                    <li>Recibir notificaciones de saldo bajo</li>
+                    <li>Generar reportes de gastos mensuales</li>
+                </ul>
+                <p class="mt-2 text-sm text-green-700">
+                    <strong>Nota:</strong> Después de crear el usuario, deberá registrar los perfiles de sus hijos.
+                </p>
+            `
+        }
+    };
+    
+    tipoUsuario.addEventListener('change', function() {
+        const tipo = this.value;
+        
+        if (tipo && descripciones[tipo]) {
+            tipoDescription.textContent = descripciones[tipo].description;
+            infoContent.innerHTML = descripciones[tipo].info;
+            infoAdicional.classList.remove('hidden');
+        } else {
+            tipoDescription.textContent = 'Selecciona el tipo para ver descripción';
+            infoAdicional.classList.add('hidden');
+        }
+    });
+    
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const firstName = document.getElementById('first_name').value;
+        const lastName = document.getElementById('last_name').value;
+        const tipoUsuario = document.getElementById('tipo_usuario').value;
+        
+        // Validaciones básicas
+        if (!username || !password || !firstName || !lastName || !tipoUsuario) {
+            e.preventDefault();
+            alert('Por favor, completa todos los campos obligatorios marcados con *');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 6 caracteres');
+            return false;
+        }
+        
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            e.preventDefault();
+            alert('El nombre de usuario solo puede contener letras, números y guión bajo');
+            return false;
+        }
+        
+        // Confirmación para crear administrador
+        if (tipoUsuario === 'administrador') {
+            if (!confirm('¿Estás seguro de crear un usuario Administrador? Este usuario tendrá acceso completo al sistema.')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+    
+    // Auto-generar username basado en nombres
+    const firstName = document.getElementById('first_name');
+    const lastName = document.getElementById('last_name');
+    const username = document.getElementById('username');
+    
+    function generarUsername() {
+        if (firstName.value && lastName.value) {
+            const firstInitial = firstName.value.charAt(0).toLowerCase();
+            const lastNameClean = lastName.value.toLowerCase()
+                .replace(/[^a-zA-Z]/g, '')
+                .substring(0, 7);
+            const suggestion = firstInitial + lastNameClean;
+            
+            if (!username.value) {
+                username.value = suggestion;
+            }
+        }
+    }
+    
+    firstName.addEventListener('blur', generarUsername);
+    lastName.addEventListener('blur', generarUsername);
+});
+</script>
+{% endblock %}

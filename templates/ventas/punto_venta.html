@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Punto de Venta - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Punto de Venta (POS)
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Sistema de ventas inteligente con múltiples métodos de pago
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Panel de Productos -->
+    <div class="lg:col-span-2">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Productos Disponibles</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-gray-600 mb-4">
+                    Interfaz POS en desarrollo. Funcionalidades planificadas:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <h4 class="mt-2 font-medium text-gray-900">Búsqueda de Productos</h4>
+                        <p class="text-sm text-gray-500">Buscar por código o nombre</p>
+                    </div>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <h4 class="mt-2 font-medium text-gray-900">Categorías</h4>
+                        <p class="text-sm text-gray-500">Navegación por categorías</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel de Venta -->
+    <div class="lg:col-span-1">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Carrito de Compras</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-6">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5H21M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                    </svg>
+                    <h4 class="mt-2 font-medium text-gray-900">Carrito Vacío</h4>
+                    <p class="text-sm text-gray-500 mb-4">Agrega productos para comenzar</p>
+                </div>
+                
+                <!-- Resumen de Totales -->
+                <div class="border-t pt-4">
+                    <div class="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span>0 Gs.</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>Descuento:</span>
+                        <span>0 Gs.</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>Impuesto:</span>
+                        <span>0 Gs.</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between text-lg font-semibold">
+                            <span>Total:</span>
+                            <span>0 Gs.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-primary w-full mt-4" disabled>
+                    Procesar Pago
+                </button>
+            </div>
+        </div>
+        
+        <!-- Métodos de Pago -->
+        <div class="card mt-6">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Métodos de Pago</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Efectivo
+                        </span>
+                        <span class="text-gray-500">0%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Transferencia
+                        </span>
+                        <span class="text-gray-500">0%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Giros Tigo
+                        </span>
+                        <span class="text-gray-500">0%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                            Débito/QR
+                        </span>
+                        <span class="text-gray-500">4%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                            Crédito/QR
+                        </span>
+                        <span class="text-gray-500">6%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            Saldo Virtual
+                        </span>
+                        <span class="text-gray-500">0%</span>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-gray-500 mt-4">
+                    * Los pagos mixtos están permitidos<br>
+                    * La facturación se realiza automáticamente según el método de pago
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de desarrollo -->
+<div class="mt-8 card">
+    <div class="card-header">
+        <h3 class="text-lg font-medium">🚧 En Desarrollo</h3>
+    </div>
+    <div class="card-body">
+        <p class="text-gray-600 mb-4">
+            El sistema POS completo está en desarrollo. Las siguientes funcionalidades se implementarán:
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h4 class="font-semibold text-gray-900 mb-2">Gestión de Ventas</h4>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
+                    <li>Búsqueda rápida de productos</li>
+                    <li>Carrito de compras interactivo</li>
+                    <li>Identificación de hijos</li>
+                    <li>Cálculo automático de totales</li>
+                    <li>Aplicación de descuentos</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-gray-900 mb-2">Métodos de Pago</h4>
+                <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
+                    <li>Pagos simples y mixtos</li>
+                    <li>Validación de saldo virtual</li>
+                    <li>Control de saldo negativo</li>
+                    <li>Cálculo de comisiones automático</li>
+                    <li>Generación de facturas inteligente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

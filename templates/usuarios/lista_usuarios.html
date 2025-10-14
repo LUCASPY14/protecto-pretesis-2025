@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0 flex items-center">
+        <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-12 w-auto mr-4">
+        <div>
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                Gestión de Usuarios
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Administrar usuarios del sistema
+            </p>
+        </div>
+    </div>
+    {% if user.tipo_usuario == 'administrador' %}
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{% url 'usuarios:crear_usuario' %}" class="btn-primary">
+            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Nuevo Usuario
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros y Búsqueda -->
+<div class="card mb-6">
+    <div class="card-body">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                <input type="text" name="search" id="search" 
+                       value="{{ request.GET.search }}"
+                       placeholder="Nombre, usuario o email..."
+                       class="form-input">
+            </div>
+            <div>
+                <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
+                <select name="tipo" id="tipo" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="administrador" {% if request.GET.tipo == 'administrador' %}selected{% endif %}>Administrador</option>
+                    <option value="cajero" {% if request.GET.tipo == 'cajero' %}selected{% endif %}>Cajero</option>
+                    <option value="padre" {% if request.GET.tipo == 'padre' %}selected{% endif %}>Padre</option>
+                </select>
+            </div>
+            <div>
+                <label for="activo" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select name="activo" id="activo" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="true" {% if request.GET.activo == 'true' %}selected{% endif %}>Activos</option>
+                    <option value="false" {% if request.GET.activo == 'false' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="btn-primary mr-2">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Buscar
+                </button>
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-secondary">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Usuarios -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="text-lg font-medium">
+            Usuarios ({{ usuarios|length }} encontrado{{ usuarios|length|pluralize }})
+        </h3>
+    </div>
+    <div class="card-body p-0">
+        {% if usuarios %}
+            <!-- Desktop Table -->
+            <div class="hidden md:block">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Usuario
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Información Personal
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tipo
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Último Acceso
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for usuario in usuarios %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-cantina-primary flex items-center justify-center">
+                                            <span class="text-sm font-medium text-white">
+                                                {{ usuario.get_full_name|default:usuario.username|first|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ usuario.username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ usuario.email|default:"Sin email" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ usuario.get_full_name|default:"Sin nombre" }}
+                                </div>
+                                {% if usuario.telefono %}
+                                <div class="text-sm text-gray-500">
+                                    {{ usuario.telefono }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="badge 
+                                    {% if usuario.tipo_usuario == 'administrador' %}badge-danger
+                                    {% elif usuario.tipo_usuario == 'cajero' %}badge-warning  
+                                    {% else %}badge-info{% endif %}">
+                                    {{ usuario.get_tipo_usuario_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if usuario.activo %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if usuario.last_login %}
+                                    {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'usuarios:detalle_usuario' usuario.pk %}" 
+                                       class="text-cantina-primary hover:text-blue-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+                                    {% if user.tipo_usuario == 'administrador' and usuario.pk != user.pk %}
+                                    <a href="{% url 'usuarios:editar_usuario' usuario.pk %}" 
+                                       class="text-yellow-600 hover:text-yellow-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden">
+                <div class="space-y-4 p-4">
+                    {% for usuario in usuarios %}
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-12 w-12">
+                                    <div class="h-12 w-12 rounded-full bg-cantina-primary flex items-center justify-center">
+                                        <span class="text-lg font-medium text-white">
+                                            {{ usuario.get_full_name|default:usuario.username|first|upper }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900">
+                                        {{ usuario.get_full_name|default:usuario.username }}
+                                    </h4>
+                                    <p class="text-sm text-gray-500">@{{ usuario.username }}</p>
+                                    {% if usuario.email %}
+                                    <p class="text-xs text-gray-500">{{ usuario.email }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end space-y-1">
+                                <span class="badge 
+                                    {% if usuario.tipo_usuario == 'administrador' %}badge-danger
+                                    {% elif usuario.tipo_usuario == 'cajero' %}badge-warning  
+                                    {% else %}badge-info{% endif %}">
+                                    {{ usuario.get_tipo_usuario_display }}
+                                </span>
+                                {% if usuario.activo %}
+                                    <span class="badge badge-success text-xs">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger text-xs">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex justify-between items-center">
+                            <div class="text-xs text-gray-500">
+                                {% if usuario.last_login %}
+                                    Último acceso: {{ usuario.last_login|date:"d/m/Y" }}
+                                {% else %}
+                                    Sin accesos registrados
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{% url 'usuarios:detalle_usuario' usuario.pk %}" 
+                                   class="btn-primary text-xs">Ver</a>
+                                {% if user.tipo_usuario == 'administrador' and usuario.pk != user.pk %}
+                                <a href="{% url 'usuarios:editar_usuario' usuario.pk %}" 
+                                   class="btn-secondary text-xs">Editar</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontraron usuarios</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if request.GET.search %}
+                        No hay usuarios que coincidan con tu búsqueda.
+                    {% else %}
+                        Comienza creando un nuevo usuario.
+                    {% endif %}
+                </p>
+                {% if user.tipo_usuario == 'administrador' and not request.GET.search %}
+                <div class="mt-6">
+                    <a href="{% url 'usuarios:crear_usuario' %}" class="btn-primary">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Crear Usuario
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Estadísticas Rápidas -->
+{% if user.tipo_usuario == 'administrador' %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+    <div class="card">
+        <div class="card-body">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-cantina-primary rounded-md flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Usuarios</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ total_usuarios }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-cantina-success rounded-md flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Usuarios Activos</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ usuarios_activos }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-cantina-warning rounded-md flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Accesos Hoy</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ accesos_hoy }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-submit form on filter changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterSelects = document.querySelectorAll('#tipo, #activo');
+        
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                // Optional: Auto-submit on filter change
+                // this.form.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

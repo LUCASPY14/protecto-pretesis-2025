@@ -1,0 +1,619 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Hijo - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Registrar Nuevo Hijo
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Agregar un hijo al sistema para gestionar su saldo y consumo
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{% url 'usuarios:lista_hijos' %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver a Lista
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Formulario de Creación -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-lg font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197H9m6 0a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 21v-1.125c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125V21z"></path>
+                </svg>
+                Información del Hijo
+            </h3>
+        </div>
+        <div class="card-body">
+                            <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Padre (solo para administradores) -->
+                    {% if user.tipo_usuario == 'administrador' and padres %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h4 class="text-md font-medium text-yellow-800 mb-3">Seleccionar Padre</h4>
+                        <div>
+                            <label for="padre_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                Padre/Tutor *
+                            </label>
+                            <select name="padre_id" id="padre_id" class="form-select" required>
+                                <option value="">Seleccionar padre...</option>
+                                {% for padre in padres %}
+                                <option value="{{ padre.id }}">{{ padre.get_full_name }} ({{ padre.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Información Personal -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Información Personal</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label for="{{ form.nombre_completo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.nombre_completo.label }} *
+                                </label>
+                                {{ form.nombre_completo }}
+                                {% if form.nombre_completo.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.nombre_completo.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.fecha_nacimiento.label }}
+                                </label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.fecha_nacimiento.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Académica -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Datos Académicos</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.grado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.grado.label }}
+                                </label>
+                                {{ form.grado }}
+                                {% if form.grado.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.grado.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.seccion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.seccion.label }}
+                                </label>
+                                {{ form.seccion }}
+                                {% if form.seccion.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.seccion.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Saldo -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Configuración de Saldo</h4>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ form.puede_saldo_negativo }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ form.puede_saldo_negativo.id_for_label }}" class="font-medium text-gray-700">
+                                        {{ form.puede_saldo_negativo.label }}
+                                    </label>
+                                    <p class="text-gray-500">
+                                        {{ form.puede_saldo_negativo.help_text }}
+                                    </p>
+                                    {% if form.puede_saldo_negativo.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.puede_saldo_negativo.errors %}
+                                                <p>{{ error }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div id="limite_negativo_container">
+                                <label for="{{ form.limite_saldo_negativo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.limite_saldo_negativo.label }}
+                                </label>
+                                {{ form.limite_saldo_negativo }}
+                                {% if form.limite_saldo_negativo.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        {{ form.limite_saldo_negativo.help_text }}
+                                    </p>
+                                {% endif %}
+                                {% if form.limite_saldo_negativo.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.limite_saldo_negativo.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ form.activo }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ form.activo.id_for_label }}" class="font-medium text-gray-700">
+                                        {{ form.activo.label }}
+                                    </label>
+                                    <p class="text-gray-500">
+                                        {{ form.activo.help_text }}
+                                    </p>
+                                    {% if form.activo.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.activo.errors %}
+                                                <p>{{ error }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Exclusiva -->
+                    <div class="border border-cantina-primary rounded-lg p-4 bg-blue-50">
+                        <h4 class="text-md font-medium text-cantina-primary mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                            Tarjeta Exclusiva de La Cantina de Tita
+                        </h4>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ form.asignar_tarjeta }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ form.asignar_tarjeta.id_for_label }}" class="font-medium text-gray-700">
+                                        {{ form.asignar_tarjeta.label|default:"Asignar tarjeta automáticamente" }}
+                                    </label>
+                                    <p class="text-gray-500">
+                                        {{ form.asignar_tarjeta.help_text|default:"Se generará automáticamente un número de tarjeta único para uso exclusivo en los puntos de venta de la cantina" }}
+                                    </p>
+                                    {% if form.asignar_tarjeta.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.asignar_tarjeta.errors %}
+                                                <p>{{ error }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Campos de asignación manual -->
+                            <div id="campos-manual" class="hidden bg-white p-4 rounded border border-gray-300 space-y-3">
+                                <h6 class="text-sm font-medium text-gray-800 mb-2">Asignación Manual (Opcional)</h6>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.numero_tarjeta_manual.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ form.numero_tarjeta_manual.label|default:"Número de Tarjeta Específico" }}
+                                        </label>
+                                        {{ form.numero_tarjeta_manual }}
+                                        <p class="mt-1 text-xs text-gray-500">
+                                            {{ form.numero_tarjeta_manual.help_text }}
+                                        </p>
+                                        {% if form.numero_tarjeta_manual.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.numero_tarjeta_manual.errors %}
+                                                    <p>{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div>
+                                        <label for="{{ form.codigo_tarjeta_manual.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ form.codigo_tarjeta_manual.label|default:"Código de Seguridad Específico" }}
+                                        </label>
+                                        {{ form.codigo_tarjeta_manual }}
+                                        <p class="mt-1 text-xs text-gray-500">
+                                            {{ form.codigo_tarjeta_manual.help_text }}
+                                        </p>
+                                        {% if form.codigo_tarjeta_manual.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.codigo_tarjeta_manual.errors %}
+                                                    <p>{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-yellow-800">
+                                                <strong>Nota:</strong> Si deja estos campos vacíos, se generarán automáticamente números únicos. Solo complete si necesita asignar números específicos.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded border border-gray-200">
+                                <h5 class="text-sm font-medium text-gray-800 mb-2">¿Qué es la tarjeta exclusiva?</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Tarjeta física personalizada de La Cantina de Tita
+                                    </li>
+                                    <li class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Utilizada en puntos de venta para pagar con saldo virtual
+                                    </li>
+                                    <li class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Número único de 16 dígitos para identificación
+                                    </li>
+                                    <li class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Control parental total sobre saldo y límites
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Estado del Perfil -->
+                <div class="border border-green-200 rounded-lg p-4 bg-green-50">
+                    <h4 class="text-md font-medium text-gray-900 mb-4">Estado del Perfil</h4>
+                    
+                    <div>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" 
+                                   name="activo" 
+                                   id="activo" 
+                                   checked
+                                   class="form-checkbox h-4 w-4 text-cantina-primary">
+                            <span class="ml-2 text-sm text-gray-700">Perfil activo</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Los perfiles inactivos no podrán realizar compras en la cantina
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                    <a href="{% url 'usuarios:lista_hijos' %}" class="btn-secondary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Registrar Hijo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="card mt-6">
+        <div class="card-header">
+            <h3 class="text-lg font-medium">Información Importante</h3>
+        </div>
+        <div class="card-body">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            Sobre el Saldo Virtual
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Cada hijo tendrá una tarjeta virtual para compras en la cantina</li>
+                                <li>Podrás recargar saldo desde tu panel de control</li>
+                                <li>Recibirás notificaciones cuando el saldo esté bajo</li>
+                                <li>El saldo negativo es opcional y controlado por límites</li>
+                                <li>Podrás ver el historial completo de compras de tu hijo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">
+                            Próximos Pasos
+                        </h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>Una vez registrado el perfil, podrás:</p>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>Realizar la primera recarga de saldo</li>
+                                <li>Activar notificaciones de bajo saldo</li>
+                                <li>Configurar límites de gasto diario</li>
+                                <li>Ver reportes de consumo semanal/mensual</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle límite de saldo negativo
+    const puedeNegativo = document.getElementById('puede_saldo_negativo');
+    const limiteNegativo = document.getElementById('limite_negativo');
+    
+    puedeNegativo.addEventListener('change', function() {
+        if (this.checked) {
+            limiteNegativo.classList.remove('hidden');
+        } else {
+            limiteNegativo.classList.add('hidden');
+        }
+    });
+    
+    // Formatear números de saldo
+    const saldoInputs = document.querySelectorAll('#saldo_inicial, #limite_saldo_negativo');
+    
+    saldoInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            // Remover caracteres no numéricos excepto puntos
+            let value = this.value.replace(/[^0-9]/g, '');
+            
+            // Formatear como número con separadores de miles
+            if (value) {
+                const numValue = parseInt(value);
+                this.value = numValue.toLocaleString('es-PY').replace(/\./g, '');
+            }
+        });
+        
+        input.addEventListener('blur', function() {
+            // Asegurar que sea múltiplo de 1000
+            if (this.value) {
+                let value = parseInt(this.value.replace(/[^0-9]/g, ''));
+                if (value > 0) {
+                    value = Math.round(value / 1000) * 1000;
+                    this.value = value;
+                }
+            }
+        });
+    });
+    
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const nombreCompleto = document.getElementById('nombre_completo').value.trim();
+        
+        if (!nombreCompleto) {
+            e.preventDefault();
+            alert('Por favor, ingresa el nombre completo del estudiante');
+            document.getElementById('nombre_completo').focus();
+            return false;
+        }
+        
+        if (nombreCompleto.length < 3) {
+            e.preventDefault();
+            alert('El nombre completo debe tener al menos 3 caracteres');
+            document.getElementById('nombre_completo').focus();
+            return false;
+        }
+        
+        // Validar saldo negativo
+        const puedeNegativo = document.getElementById('puede_saldo_negativo').checked;
+        const limiteNegativo = document.getElementById('limite_saldo_negativo').value;
+        
+        if (puedeNegativo && (!limiteNegativo || parseInt(limiteNegativo) <= 0)) {
+            e.preventDefault();
+            alert('Si permites saldo negativo, debes establecer un límite mayor a cero');
+            document.getElementById('limite_saldo_negativo').focus();
+            return false;
+        }
+        
+        // Confirmación final
+        const confirmacion = confirm(
+            `¿Confirmas registrar a ${nombreCompleto} como tu hijo/a en el sistema de la cantina?`
+        );
+        
+        if (!confirmacion) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // Auto-capitalizar nombre
+    const nombreInput = document.getElementById('nombre_completo');
+    nombreInput.addEventListener('input', function() {
+        let words = this.value.split(' ');
+        words = words.map(word => {
+            if (word.length > 0) {
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }
+            return word;
+        });
+        this.value = words.join(' ');
+    });
+    
+    // Calcular edad aproximada basada en fecha de nacimiento
+    const fechaNacimiento = document.getElementById('fecha_nacimiento');
+    fechaNacimiento.addEventListener('change', function() {
+        if (this.value) {
+            const today = new Date();
+            const birthDate = new Date(this.value);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            // Sugerir grado basado en edad
+            const gradoSelect = document.getElementById('grado');
+            if (age >= 3 && age <= 18) {
+                const grados = {
+                    3: 'Jardín',
+                    4: 'Pre-Kinder', 
+                    5: 'Kinder',
+                    6: '1° Grado',
+                    7: '2° Grado',
+                    8: '3° Grado',
+                    9: '4° Grado',
+                    10: '5° Grado',
+                    11: '6° Grado',
+                    12: '7° Grado',
+                    13: '8° Grado',
+                    14: '9° Grado',
+                    15: '1° Bachillerato',
+                    16: '2° Bachillerato',
+                    17: '3° Bachillerato',
+                    18: '3° Bachillerato'
+                };
+                
+                if (grados[age] && !gradoSelect.value) {
+                    gradoSelect.value = grados[age];
+                }
+            }
+        }
+    });
+    
+    // Manejar toggle de saldo negativo
+    const checkboxSaldoNegativo = document.getElementById('id_puede_saldo_negativo');
+    const limiteContainer = document.getElementById('limite_negativo_container');
+    const limiteInput = document.getElementById('id_limite_saldo_negativo');
+    
+    function toggleLimiteNegativo() {
+        if (checkboxSaldoNegativo && checkboxSaldoNegativo.checked) {
+            if (limiteInput) limiteInput.style.display = 'block';
+        } else {
+            if (limiteInput) limiteInput.style.display = 'none';
+        }
+    }
+    
+    if (checkboxSaldoNegativo) {
+        checkboxSaldoNegativo.addEventListener('change', toggleLimiteNegativo);
+        toggleLimiteNegativo(); // Ejecutar al cargar
+    }
+
+    // Mostrar/ocultar campos de asignación manual de tarjeta
+    const checkboxAsignarTarjeta = document.getElementById('id_asignar_tarjeta');
+    const camposManual = document.getElementById('campos-manual');
+    
+    function toggleCamposManual() {
+        if (checkboxAsignarTarjeta && camposManual) {
+            if (checkboxAsignarTarjeta.checked) {
+                camposManual.classList.remove('hidden');
+            } else {
+                camposManual.classList.add('hidden');
+                // Limpiar campos si se ocultan
+                const numeroInput = document.getElementById('id_numero_tarjeta_manual');
+                const codigoInput = document.getElementById('id_codigo_tarjeta_manual');
+                if (numeroInput) numeroInput.value = '';
+                if (codigoInput) codigoInput.value = '';
+            }
+        }
+    }
+    
+    if (checkboxAsignarTarjeta) {
+        checkboxAsignarTarjeta.addEventListener('change', toggleCamposManual);
+        toggleCamposManual(); // Ejecutar al cargar
+    }
+
+    // Formatear número de tarjeta automáticamente
+    const numeroTarjetaInput = document.getElementById('id_numero_tarjeta_manual');
+    if (numeroTarjetaInput) {
+        numeroTarjetaInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, ''); // Solo números
+            let formattedValue = value.replace(/(.{4})(?=.)/g, '$1-'); // Agregar guiones
+            if (formattedValue.length > 19) { // Máximo 16 dígitos + 3 guiones
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            this.value = formattedValue;
+        });
+    }
+
+    // Solo números para código de seguridad
+    const codigoTarjetaInput = document.getElementById('id_codigo_tarjeta_manual');
+    if (codigoTarjetaInput) {
+        codigoTarjetaInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, ''); // Solo números
+            if (this.value.length > 4) {
+                this.value = this.value.substring(0, 4);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

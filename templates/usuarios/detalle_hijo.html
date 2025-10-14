@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hijo.nombre_completo }} - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'usuarios:lista_hijos' %}" class="text-gray-400 hover:text-gray-500">
+                        {% if user.tipo_usuario == 'padre' %}Mis Hijos{% else %}Hijos{% endif %}
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="flex-shrink-0 h-5 w-5 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-4 text-sm font-medium text-gray-500">{{ hijo.nombre_completo }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+        <h2 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {{ hijo.nombre_completo }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if hijo.grado %}{{ hijo.grado }}{% if hijo.seccion %} - Sección {{ hijo.seccion }}{% endif %}{% endif %}
+            • Hijo de {{ hijo.padre.get_full_name }}
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        {% if user.tipo_usuario == 'padre' or user.tipo_usuario == 'administrador' %}
+        <a href="{% url 'usuarios:recarga_saldo' hijo.pk %}" class="btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            Recargar Saldo
+        </a>
+        {% endif %}
+        <a href="{% url 'usuarios:lista_hijos' %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Información Principal -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Perfil del hijo -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Información Personal
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                            <span class="text-xl font-bold text-white">
+                                {{ hijo.nombre_completo|first }}
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900">{{ hijo.nombre_completo }}</h4>
+                            {% if hijo.fecha_nacimiento %}
+                            <p class="text-sm text-gray-500">
+                                Nacido el {{ hijo.fecha_nacimiento|date:"d \d\e F \d\e Y" }}
+                            </p>
+                            {% endif %}
+                            <div class="mt-1">
+                                {% if hijo.activo %}
+                                    <span class="badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge-error">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Padre/Tutor</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ hijo.padre.get_full_name }}</p>
+                        </div>
+                        
+                        {% if hijo.grado %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Grado</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ hijo.grado }}{% if hijo.seccion %} - Sección {{ hijo.seccion }}{% endif %}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Registrado</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ hijo.fecha_creacion|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de la Tarjeta -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                    Tarjeta Exclusiva de La Cantina de Tita
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if hijo.numero_tarjeta %}
+                <div class="bg-gradient-to-r from-cantina-primary to-blue-600 text-white rounded-xl p-6 mb-4 relative overflow-hidden">
+                    <!-- Diseño de tarjeta -->
+                    <div class="absolute top-4 right-4 opacity-20">
+                        <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <div class="text-sm font-medium opacity-75 mb-1">LA CANTINA DE TITA</div>
+                        <div class="text-2xl font-mono font-bold tracking-wider mb-4">
+                            {{ hijo.numero_tarjeta_formateado }}
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <div class="text-xs opacity-75">TITULAR</div>
+                                <div class="font-semibold">{{ hijo.nombre_completo|upper|truncatechars:20 }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs opacity-75">DESDE</div>
+                                <div class="font-semibold">{{ hijo.fecha_asignacion_tarjeta|date:"m/y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Estado de la Tarjeta</label>
+                        <div class="mt-1">
+                            {% if hijo.tarjeta_activa %}
+                                <span class="badge-success">Activa</span>
+                            {% else %}
+                                <span class="badge-error">Inactiva</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Fecha de Asignación</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ hijo.fecha_asignacion_tarjeta|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Número de Tarjeta</label>
+                        <p class="mt-1 text-sm text-gray-900 font-mono">{{ hijo.numero_tarjeta_oculto }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Código de Seguridad</label>
+                        <p class="mt-1 text-sm text-gray-900 font-mono">****</p>
+                        <p class="text-xs text-gray-500">Solo visible en la tarjeta física</p>
+                    </div>
+                </div>
+                
+                {% if user.tipo_usuario == 'administrador' %}
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex space-x-3">
+                        {% if hijo.tarjeta_activa %}
+                        <button onclick="desactivarTarjeta({{ hijo.pk }})" class="btn-danger">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                            </svg>
+                            Desactivar Tarjeta
+                        </button>
+                        {% else %}
+                        <button onclick="activarTarjeta({{ hijo.pk }})" class="btn-success">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Activar Tarjeta
+                        </button>
+                        {% endif %}
+                        
+                        <button onclick="regenerarTarjeta({{ hijo.pk }})" class="btn-warning">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Regenerar Tarjeta
+                        </button>
+                        
+                        {% if user.is_superuser %}
+                        <a href="{% url 'usuarios:gestionar_tarjeta_manual' hijo.pk %}" class="btn-secondary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                            </svg>
+                            Gestión Avanzada
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Sin tarjeta asignada</h3>
+                    <p class="mt-1 text-sm text-gray-500">Este hijo aún no tiene una tarjeta de La Cantina de Tita asignada.</p>
+                    
+                    {% if user.tipo_usuario == 'administrador' or user.tipo_usuario == 'padre' %}
+                    <div class="mt-6">
+                        <button onclick="asignarTarjeta({{ hijo.pk }})" class="btn-primary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Asignar Tarjeta
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Historial de Compras Recientes -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    Compras Recientes
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% if compras_recientes %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Productos</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for compra in compras_recientes %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ compra.fecha_venta|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <div class="max-w-xs truncate">
+                                        {% for detalle in compra.detalles.all %}
+                                            {{ detalle.cantidad }}x {{ detalle.producto.nombre }}
+                                            {% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span class="badge-info">{{ compra.metodo_pago.get_tipo_display }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                    {{ compra.total|floatformat:0 }} Gs.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">No hay compras registradas aún</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Historial de Recargas -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-cantina-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                    Historial de Recargas
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% if recargas_recientes %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Realizada por</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for recarga in recargas_recientes %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ recarga.fecha_recarga|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ recarga.realizada_por.get_full_name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
+                                    +{{ recarga.monto|floatformat:0 }} Gs.
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    {{ recarga.observaciones|default:"—" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">No hay recargas registradas aún</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral -->
+    <div class="space-y-6">
+        <!-- Tarjeta de Saldo -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Saldo Virtual</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="text-3xl font-bold 
+                        {% if hijo.saldo_virtual < 0 %}text-red-600
+                        {% elif hijo.saldo_virtual < 10000 %}text-yellow-600
+                        {% else %}text-green-600
+                        {% endif %}">
+                        {{ hijo.saldo_virtual|floatformat:0 }} Gs.
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Saldo disponible</p>
+                    
+                    {% if hijo.puede_saldo_negativo %}
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="text-sm text-gray-600">
+                            <strong>Límite negativo:</strong><br>
+                            -{{ hijo.limite_saldo_negativo|floatformat:0 }} Gs.
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-xs text-gray-500">Saldo disponible total</div>
+                            <div class="text-lg font-semibold text-blue-600">
+                                {{ hijo.saldo_disponible|floatformat:0 }} Gs.
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.tipo_usuario == 'padre' or user.tipo_usuario == 'administrador' %}
+                    <div class="mt-4">
+                        <a href="{% url 'usuarios:recarga_saldo' hijo.pk %}" class="btn-primary w-full">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Recargar Saldo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas y Notificaciones -->
+        {% if hijo.saldo_virtual < 10000 %}
+        <div class="card border-yellow-200 bg-yellow-50">
+            <div class="card-body">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Saldo Bajo</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>El saldo está por debajo de 10.000 Gs. Considera recargar pronto para evitar inconvenientes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if hijo.saldo_virtual < 0 %}
+        <div class="card border-red-200 bg-red-50">
+            <div class="card-body">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Saldo Negativo</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>El hijo tiene un saldo negativo. Es recomendable realizar una recarga lo antes posible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Configuración del Hijo -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Configuración</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Saldo negativo</span>
+                        {% if hijo.puede_saldo_negativo %}
+                            <span class="badge-success">Permitido</span>
+                        {% else %}
+                            <span class="badge-error">No permitido</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if hijo.puede_saldo_negativo %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Límite negativo</span>
+                        <span class="text-sm text-gray-900">{{ hijo.limite_saldo_negativo|floatformat:0 }} Gs.</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Estado</span>
+                        {% if hijo.activo %}
+                            <span class="badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge-error">Inactivo</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-medium">Estadísticas</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Total recargas</span>
+                        <span class="text-sm text-gray-900">{{ recargas_recientes|length }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Total compras</span>
+                        <span class="text-sm text-gray-900">{{ compras_recientes|length }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Registrado hace</span>
+                        <span class="text-sm text-gray-900">{{ hijo.fecha_creacion|timesince }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

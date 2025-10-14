@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-red-600 sm:text-3xl sm:truncate">
+            {{ titulo }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Esta acción no se puede deshacer
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Cancelar
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Advertencia principal -->
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-6">
+        <div class="flex items-start">
+            <svg class="w-8 h-8 text-red-600 mr-4 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <div>
+                <h3 class="text-lg font-semibold text-red-800">¡ADVERTENCIA!</h3>
+                <p class="text-red-700 mt-2">
+                    Estás a punto de eliminar permanentemente el perfil de <strong>{{ hijo.nombre_completo }}</strong>.
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del hijo -->
+    <div class="card mb-6">
+        <div class="p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Información del Hijo</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Nombre</p>
+                    <p class="text-base text-gray-900">{{ hijo.nombre_completo }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Padre</p>
+                    <p class="text-base text-gray-900">{{ hijo.padre.get_full_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Fecha de Nacimiento</p>
+                    <p class="text-base text-gray-900">{{ hijo.fecha_nacimiento|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Grado Escolar</p>
+                    <p class="text-base text-gray-900">{{ hijo.grado_escolar|default:"-" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Número de Tarjeta</p>
+                    <p class="text-base text-gray-900">{{ hijo.numero_tarjeta|default:"Sin asignar" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Estado</p>
+                    {% if hijo.activo %}
+                        <span class="badge-success">Activo</span>
+                    {% else %}
+                        <span class="badge-error">Inactivo</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información de saldo -->
+            <div class="mt-6 border-t border-gray-200 pt-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Saldo Actual</p>
+                        <p class="text-2xl font-bold 
+                            {% if hijo.saldo_virtual < 0 %}text-red-600
+                            {% elif hijo.saldo_virtual < 10000 %}text-yellow-600
+                            {% else %}text-green-600
+                            {% endif %}">
+                            {{ hijo.saldo_virtual|floatformat:0 }} Gs.
+                        </p>
+                    </div>
+                    {% if hijo.saldo_virtual > 0 %}
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-yellow-800 text-sm font-medium">⚠️ Saldo Positivo</p>
+                            <p class="text-yellow-700 text-xs">Este saldo se perderá al eliminar el perfil</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verificaciones adicionales -->
+    {% if tiene_transacciones %}
+    <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-center">
+            <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <div>
+                <h4 class="text-yellow-800 font-semibold">Este hijo tiene historial de transacciones</h4>
+                <p class="text-yellow-700 text-sm">Al eliminarlo se mantendrán los registros de ventas para contabilidad, pero se perderá la referencia al perfil del hijo.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulario de confirmación -->
+    <div class="card">
+        <div class="p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Confirmación Requerida</h3>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label for="confirmacion" class="block text-sm font-medium text-gray-700 mb-2">
+                        Para confirmar la eliminación, escribe <strong>ELIMINAR</strong> en el campo siguiente:
+                    </label>
+                    <input type="text" 
+                           id="confirmacion" 
+                           name="confirmacion" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                           placeholder="Escribe ELIMINAR para confirmar"
+                           required>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" class="btn-secondary">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Eliminar Definitivamente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const confirmacionInput = document.getElementById('confirmacion');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Deshabilitar el botón por defecto
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    // Habilitar solo cuando se escriba exactamente "ELIMINAR"
+    confirmacionInput.addEventListener('input', function() {
+        if (this.value === 'ELIMINAR') {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    });
+    
+    // Confirmación adicional antes de enviar
+    form.addEventListener('submit', function(e) {
+        if (!confirm('¿Estás absolutamente seguro de que deseas eliminar este hijo? Esta acción NO se puede deshacer.')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

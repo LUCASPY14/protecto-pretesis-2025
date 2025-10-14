@@ -1,0 +1,1189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .typing-indicator { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
+    .selected-card { background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important; border-color: #22c55e !important; }
+    .modal-overlay { backdrop-filter: blur(2px); }
+    .scroll-hidden { overflow: hidden; }
+    .scroll-auto { overflow-y: auto; }
+    body { overflow: hidden; }
+    html { overflow: hidden; }
+    
+    /* Botón Pago Mixto destacado */
+    #btn-pago-mixto {
+        background-color: #ea580c !important;
+        border: 2px solid #c2410c !important;
+    }
+        #btn-pago-mixto:disabled {
+        background-color: #fed7aa !important;
+        color: #9a3412 !important;
+        border-color: #fdba74 !important;
+    }
+    
+    </style>
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-screen bg-gray-50 overflow-hidden">
+    <!-- Header Ultra Compacto -->
+    <div class="bg-white shadow px-4 py-2 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-base font-bold text-gray-800">🏪 POS - La Cantina de Tita</h1>
+            <span class="text-xs text-gray-600">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <a href="{% url 'usuarios:dashboard' %}" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600">
+            ← Dashboard
+        </a>
+    </div>
+
+    <!-- Contenido Principal - Layout Horizontal Fijo -->
+    <div class="flex h-full" style="height: calc(100vh - 60px);">
+        <!-- Columna Izquierda: Tarjeta Virtual -->
+    <div class="w-1/4 bg-white border-r flex flex-col">
+            <!-- Tarjeta Virtual -->
+            <div class="p-3 flex-1">
+                <h3 class="text-sm font-bold text-gray-800 mb-3">💳 Tarjeta Virtual</h3>
+                <div class="relative mb-3">
+                    <input type="text" 
+                           id="buscar-tarjeta" 
+                           placeholder="Buscar tarjeta..."
+                           class="w-full text-sm border rounded px-3 py-2 focus:ring-1 focus:ring-orange-500">
+                    <div id="resultados-tarjetas" class="absolute z-20 w-full bg-white border rounded shadow-lg mt-1 hidden" style="max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+                
+                <!-- Info Tarjeta -->
+                <div id="info-tarjeta" class="bg-blue-50 border border-blue-200 rounded p-3 hidden">
+                    <div class="text-sm space-y-2">
+                        <div class="font-bold text-blue-800" id="nombre-hijo">-</div>
+                        <div class="text-gray-600" id="numero-tarjeta">-</div>
+                        <div class="text-center mt-3">
+                            <div class="text-lg font-bold text-orange-600" id="saldo-disponible">Gs. 0</div>
+                            <div class="text-xs text-gray-500">Saldo Disponible</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Central: Gestión de Venta, Tabla, Total -->
+    <div class="w-1/2 bg-white flex flex-col">
+            <!-- Sección de Productos Integrada -->
+            <div class="p-3 border-b flex-shrink-0">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-gray-800">Gestión de Venta</h3>
+                </div>
+                
+
+                    
+
+                
+
+            
+            <!-- Tabla de Items con Búsqueda Integrada -->
+            <div class="flex-1 overflow-hidden">
+                <div class="h-full overflow-y-auto">
+                    <table class="w-full text-xs">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th colspan="7" class="px-3 py-3 text-left border-b-2 border-gray-200">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-bold text-gray-800">🛒 Items de Venta</span>
+                                        <div class="flex-1 relative ml-4">
+                                            <input type="text" 
+                                                   id="buscar-producto" 
+                                                   placeholder="🔍 Buscar productos para agregar automáticamente..."
+                                                   class="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all">
+                                            <div id="resultados-productos" class="absolute z-10 w-full bg-white border-2 border-gray-200 rounded-lg shadow-lg mt-1 hidden" style="max-height: 250px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Campos ocultos para el producto seleccionado -->
+                                    <input type="hidden" id="descripcion-producto">
+                                    <input type="hidden" id="precio-producto">
+                                    <input type="hidden" id="cantidad-producto" value="1">
+                                    <div id="subtotal-preview" class="hidden"></div>
+                                </th>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="px-2 py-2 text-left w-8">#</th>
+                                <th class="px-2 py-2 text-left">Código</th>
+                                <th class="px-2 py-2 text-left">Descripción</th>
+                                <th class="px-2 py-2 text-center w-16">Cant.</th>
+                                <th class="px-2 py-2 text-center w-20">P.Unit.</th>
+                                <th class="px-2 py-2 text-center w-24">Subtotal</th>
+                                <th class="px-2 py-2 text-center w-12">❌</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-items">
+                            <tr id="tabla-vacia" class="border-t">
+                                <td colspan="7" class="text-center py-12">
+                                    <div class="text-6xl opacity-20 mb-3">🛍️</div>
+                                    <p class="text-gray-500 text-base font-medium">No hay items en la venta</p>
+                                    <p class="text-gray-400 text-sm mt-1">Busque productos arriba y seleccione para agregar automáticamente</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Total a Pagar -->
+                <div class="p-3 border-t flex-shrink-0">
+                    <div class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                        <div class="text-xs text-gray-600 mb-1" id="cantidad-items">0 items</div>
+                        <div class="text-xl font-bold text-orange-600" id="total-venta-grande">Gs. 0</div>
+                        <div class="text-xs text-gray-500 mt-1">Total a Pagar</div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Columna Derecha: Métodos de Pago -->
+        <div class="w-1/4 bg-white border-l flex flex-col">
+            <div class="p-3 flex-1">
+                <h3 class="text-sm font-bold text-gray-800 mb-3">Métodos de Pago</h3>
+                <!-- Saldo Virtual -->
+                <button id="btn-saldo-virtual" onclick="abrirModalSaldoVirtual()" disabled
+                        class="w-full bg-blue-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-blue-600 disabled:bg-blue-300 disabled:text-blue-700 text-sm transition-colors shadow-md flex items-center justify-center mb-2">
+                    <span class="mr-2">💳</span>
+                    <div class="flex-1 text-center">
+                        <div>Saldo Virtual</div>
+                        <div class="text-xs opacity-75">F1</div>
+                    </div>
+                </button>
+                <!-- Pago Mixto -->
+                <button id="btn-pago-mixto" onclick="abrirModalPagoMixto()" disabled
+                        class="w-full py-3 px-3 rounded-lg font-bold text-sm transition-colors shadow-md flex items-center justify-center mb-2"
+                        style="background-color: #ea580c; color: white; border: 2px solid #c2410c;">
+                    <span class="mr-2">🔄</span>
+                    <div class="flex-1 text-center">
+                        <div class="font-bold">Pago Mixto</div>
+                        <div class="text-xs opacity-90">F2</div>
+                    </div>
+                </button>
+                <!-- Pago Efectivo -->
+                <button id="btn-pago-efectivo" onclick="abrirModalPagoEfectivo()" disabled
+                        class="w-full bg-green-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-green-600 disabled:bg-green-300 disabled:text-green-700 text-sm transition-colors shadow-md flex items-center justify-center mb-2">
+                    <span class="mr-2">💵</span>
+                    <div class="flex-1 text-center">
+                        <div>Pago Efectivo</div>
+                        <div class="text-xs opacity-75">F3</div>
+                    </div>
+                </button>
+                <!-- Vaciar Venta -->
+                <button onclick="abrirModalVaciarVenta()"
+                        class="w-full bg-red-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-red-600 text-sm transition-colors shadow-md flex items-center justify-center">
+                    <span class="mr-2">🗑️</span>
+                    <div class="flex-1 text-center">
+                        <div>Vaciar Venta</div>
+                        <div class="text-xs opacity-75">ESC</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación Saldo Virtual -->
+<div id="modal-saldo-virtual" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div class="text-center">
+                <div class="text-4xl mb-4">💳</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Pago con Saldo Virtual</h3>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="space-y-2 text-sm">
+                        <div><strong>Hijo:</strong> <span id="modal-sv-hijo">-</span></div>
+                        <div><strong>Tarjeta:</strong> <span id="modal-sv-tarjeta">-</span></div>
+                        <div><strong>Total:</strong> <span id="modal-sv-total" class="text-lg font-bold text-blue-600">Gs. 0</span></div>
+                        <div><strong>Saldo Actual:</strong> <span id="modal-sv-saldo-actual" class="text-green-600">Gs. 0</span></div>
+                        <div><strong>Saldo Después:</strong> <span id="modal-sv-saldo-despues" class="text-orange-600">Gs. 0</span></div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="cerrarModalSaldoVirtual()" 
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                    <button onclick="procesarPagoSaldoVirtual()" 
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Confirmar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Pago Mixto -->
+<div id="modal-pago-mixto" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 max-w-lg w-full shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="text-4xl mb-2">🔄</div>
+                <h3 class="text-xl font-bold text-gray-800">Pago Mixto</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Total -->
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                    <div class="text-sm text-gray-600">Total a Pagar</div>
+                    <div id="modal-mixto-total" class="text-2xl font-bold text-orange-600">Gs. 0</div>
+                </div>
+
+                <!-- Saldo Virtual -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="text-sm font-semibold text-blue-800 mb-2">💳 Saldo Virtual Disponible</div>
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-600 mr-2">Gs.</span>
+                        <input type="text" id="modal-mixto-saldo" readonly
+                               class="flex-1 border rounded px-3 py-2 text-center bg-blue-50 font-bold text-blue-600">
+                    </div>
+                </div>
+
+                <!-- Pago Adicional -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="text-sm font-semibold text-green-800 mb-2">💰 Pago Adicional Requerido</div>
+                    <select id="modal-mixto-metodo" onchange="mostrarMontoAdicionalMixto()" 
+                            class="w-full border rounded px-3 py-2 text-sm mb-3">
+                        <option value="">Seleccione método...</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                        <option value="tarjeta_debito">💳 Tarjeta de Débito</option>
+                        <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                    </select>
+                    
+                    <div id="modal-mixto-monto-container" style="display: none;">
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-600 mr-2">Gs.</span>
+                            <input type="text" id="modal-mixto-monto" oninput="validarPagoMixtoModal()"
+                                   class="flex-1 border rounded px-3 py-2 text-center"
+                                   placeholder="Monto adicional">
+                        </div>
+                        <div id="modal-mixto-vuelto" class="text-center mt-2 text-amber-600 font-bold hidden">
+                            Vuelto: <span id="modal-mixto-vuelto-monto">Gs. 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button onclick="cerrarModalPagoMixto()" 
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                    <button onclick="procesarPagoMixtoModal()" id="btn-confirmar-mixto"
+                            class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-medium opacity-50" disabled>
+                        Confirmar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Pago Efectivo -->
+<div id="modal-pago-efectivo" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="text-4xl mb-2">💵</div>
+                <h3 class="text-xl font-bold text-gray-800">Pago 100% Efectivo</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Total -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <div class="text-sm text-gray-600">Total a Pagar</div>
+                    <div id="modal-efectivo-total" class="text-2xl font-bold text-green-600">Gs. 0</div>
+                </div>
+
+                <!-- Monto Recibido -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="text-sm font-semibold text-blue-800 mb-2">💵 Monto Recibido</div>
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-600 mr-2">Gs.</span>
+                        <input type="text" id="modal-efectivo-recibido" 
+                               oninput="calcularVueltoEfectivoModal()"
+                               class="flex-1 border rounded px-3 py-2 text-center text-lg"
+                               placeholder="Ingrese monto">
+                    </div>
+                </div>
+                
+                <!-- Vuelto -->
+                <div id="modal-efectivo-vuelto-container" class="bg-amber-50 border border-amber-200 rounded-lg p-4 hidden">
+                    <div class="text-sm font-semibold text-amber-700 mb-2">💰 Vuelto a Entregar</div>
+                    <div class="text-center">
+                        <div id="modal-efectivo-vuelto" class="text-xl font-bold text-amber-600">Gs. 0</div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button onclick="cerrarModalPagoEfectivo()" 
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                    <button onclick="procesarPagoEfectivoModal()" id="btn-confirmar-efectivo"
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium opacity-50" disabled>
+                        Confirmar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Vaciar Venta -->
+<div id="modal-vaciar-venta" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div class="text-center">
+                <div class="text-4xl mb-4">🗑️</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Vaciar Venta</h3>
+                
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-red-800">
+                        ¿Está seguro que desea eliminar todos los items de la venta?
+                    </p>
+                    <p class="text-xs text-red-600 mt-2">
+                        Esta acción no se puede deshacer.
+                    </p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="cerrarModalVaciarVenta()" 
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmarVaciarVenta()" 
+                            class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium">
+                        Vaciar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let itemsVenta = [];
+let totalVenta = 0;
+let tarjetaActual = null;
+let numeroItem = 1;
+let productoSeleccionado = null;
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda de tarjetas
+    const buscarTarjetaInput = document.getElementById('buscar-tarjeta');
+    if (buscarTarjetaInput) {
+        let timeoutId;
+        buscarTarjetaInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(buscarTarjeta, 300);
+        });
+        
+        buscarTarjetaInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                document.getElementById('resultados-tarjetas').classList.add('hidden');
+            }, 200);
+        });
+    }
+    
+    // Búsqueda de productos  
+    const buscarProductoInput = document.getElementById('buscar-producto');
+    if (buscarProductoInput) {
+        let timeoutId;
+        buscarProductoInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(buscarProducto, 300);
+        });
+        
+        buscarProductoInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                document.getElementById('resultados-productos').classList.add('hidden');
+            }, 200);
+        });
+    }
+    
+    // Event listeners para cantidad
+    const cantidadInput = document.getElementById('cantidad-producto');
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', actualizarSubtotalPreview);
+        cantidadInput.addEventListener('change', actualizarSubtotalPreview);
+    }
+    
+    // Atajos de teclado
+    document.addEventListener('keydown', function(e) {
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
+        
+        // Verificar si hay algún modal abierto
+        const modals = ['modal-saldo-virtual', 'modal-pago-mixto', 'modal-pago-efectivo', 'modal-vaciar-venta'];
+        const hayModalAbierto = modals.some(modalId => !document.getElementById(modalId).classList.contains('hidden'));
+        
+        switch(e.key) {
+            case 'F1':
+                e.preventDefault();
+                e.stopPropagation();
+                if (!isTyping && !document.getElementById('btn-saldo-virtual').disabled) {
+                    abrirModalSaldoVirtual();
+                } else {
+                    mostrarNotificacion('F1 - Saldo Virtual (necesita items y tarjeta)', 'info');
+                }
+                break;
+                
+            case 'F2':
+                e.preventDefault();
+                e.stopPropagation();
+                if (!isTyping && !document.getElementById('btn-pago-mixto').disabled) {
+                    abrirModalPagoMixto();
+                } else {
+                    mostrarNotificacion('F2 - Pago Mixto (necesita items y tarjeta)', 'info');
+                }
+                break;
+                
+            case 'F3':
+                e.preventDefault();
+                e.stopPropagation();
+                if (!isTyping && !document.getElementById('btn-pago-efectivo').disabled) {
+                    abrirModalPagoEfectivo();
+                } else {
+                    mostrarNotificacion('F3 - Pago Efectivo (necesita items y tarjeta)', 'info');
+                }
+                break;
+                
+            case 'Escape':
+                e.preventDefault();
+                e.stopPropagation();
+                if (hayModalAbierto) {
+                    cerrarTodosLosModales();
+                    mostrarNotificacion('Modal cerrado', 'info');
+                } else if (!isTyping) {
+                    abrirModalVaciarVenta();
+                }
+                break;
+                
+            case 'Enter':
+                if (!isTyping && productoSeleccionado && !hayModalAbierto) {
+                    e.preventDefault();
+                    agregarItem();
+                }
+                break;
+        }
+    });
+});
+
+console.log('🚀 Iniciando POS Ultra Compacto...');
+
+// Función para formatear guaraníes
+function formatGuaranies(valor) {
+    if (!valor && valor !== 0) return 'Gs. 0';
+    const numero = parseInt(valor);
+    return 'Gs. ' + numero.toLocaleString('es-PY').replace(/,/g, '.');
+}
+
+// ===== FUNCIONES DE TARJETAS =====
+
+async function buscarTarjeta() {
+    const busqueda = document.getElementById('buscar-tarjeta').value.trim();
+    const resultados = document.getElementById('resultados-tarjetas');
+    
+    if (busqueda.length < 2) {
+        resultados.classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch('/ventas/api/buscar-tarjeta/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ busqueda: busqueda })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            mostrarResultadosTarjetas(data.tarjetas);
+        } else {
+            resultados.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultados.classList.add('hidden');
+    }
+}
+
+function mostrarResultadosTarjetas(tarjetas) {
+    const resultados = document.getElementById('resultados-tarjetas');
+    
+    if (tarjetas.length === 0) {
+        resultados.classList.add('hidden');
+        return;
+    }
+    
+    let html = '';
+    tarjetas.forEach(tarjeta => {
+        const estado = tarjeta.activa ? 'Activa' : 'Inactiva';
+        const estadoColor = tarjeta.activa ? 'text-green-600' : 'text-red-600';
+        
+        html += `
+            <div class="p-2 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-green-50 text-xs"
+                 onclick="seleccionarTarjeta(${tarjeta.id})">
+                <div class="flex justify-between items-center">
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">${tarjeta.nombreHijo}</div>
+                        <div class="text-gray-600">${tarjeta.numeroTarjeta}</div>
+                        <div class="${estadoColor}">${estado}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-orange-600 text-xs">${formatGuaranies(tarjeta.saldoDisponible)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    resultados.innerHTML = html;
+    resultados.classList.remove('hidden');
+}
+
+async function seleccionarTarjeta(tarjetaId) {
+    try {
+        const response = await fetch('/ventas/api/seleccionar-tarjeta/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ hijo_id: tarjetaId })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            tarjetaActual = data.tarjeta;
+            document.getElementById('buscar-tarjeta').value = `${data.tarjeta.numeroTarjeta} - ${data.tarjeta.nombreHijo}`;
+            mostrarInfoTarjeta();
+            document.getElementById('resultados-tarjetas').classList.add('hidden');
+            mostrarNotificacion(`✅ Tarjeta seleccionada - Saldo: ${formatGuaranies(data.tarjeta.saldoDisponible)}`);
+            actualizarTablaItems();
+        } else {
+            alert(data.error || 'Error al seleccionar tarjeta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al seleccionar la tarjeta');
+    }
+}
+
+function mostrarInfoTarjeta() {
+    if (!tarjetaActual) {
+        document.getElementById('info-tarjeta').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('nombre-hijo').textContent = tarjetaActual.nombreHijo;
+    document.getElementById('numero-tarjeta').textContent = tarjetaActual.numeroTarjeta;
+    document.getElementById('saldo-disponible').textContent = formatGuaranies(tarjetaActual.saldoDisponible);
+    
+    document.getElementById('info-tarjeta').classList.remove('hidden');
+}
+
+// ===== FUNCIONES DE PRODUCTOS =====
+
+async function buscarProducto() {
+    const busqueda = document.getElementById('buscar-producto').value.trim();
+    const resultados = document.getElementById('resultados-productos');
+    
+    if (busqueda.length < 2) {
+        resultados.classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch('/ventas/api/buscar-producto/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ busqueda: busqueda })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            mostrarResultadosProductos(data.productos);
+        } else {
+            resultados.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultados.classList.add('hidden');
+    }
+}
+
+function mostrarResultadosProductos(productos) {
+    const resultados = document.getElementById('resultados-productos');
+    
+    if (productos.length === 0) {
+        resultados.classList.add('hidden');
+        return;
+    }
+    
+    let html = '';
+    productos.forEach(producto => {
+        const stockInfo = producto.requiere_stock ? 
+            (producto.stock_actual > 0 ? 
+                `<span class="text-green-600">Stock: ${producto.stock_actual}</span>` : 
+                `<span class="text-red-600">Sin stock</span>`) : 
+            `<span class="text-blue-600">Sin control</span>`;
+            
+        html += `
+            <div class="p-2 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-blue-50 text-xs ${producto.stock_actual <= 0 && producto.requiere_stock ? 'opacity-50' : ''}"
+                 onclick="seleccionarProducto(${producto.id})" 
+                 ${producto.stock_actual <= 0 && producto.requiere_stock ? 'style="pointer-events: none;"' : ''}>
+                <div class="flex justify-between items-center">
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">${producto.codigo} - ${producto.nombre}</div>
+                        <div class="text-gray-600">${producto.categoria || 'Sin categoría'}</div>
+                        <div>${stockInfo}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-orange-600">${formatGuaranies(producto.precio_venta)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    resultados.innerHTML = html;
+    resultados.classList.remove('hidden');
+}
+
+async function seleccionarProducto(productoId) {
+    try {
+        const response = await fetch('/ventas/api/seleccionar-producto/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ producto_id: productoId })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            productoSeleccionado = data.producto;
+            
+            // Limpiar campo de búsqueda
+            document.getElementById('buscar-producto').value = '';
+            document.getElementById('resultados-productos').classList.add('hidden');
+            
+            // Agregar automáticamente el producto con cantidad 1
+            const cantidad = 1;
+            const precio = data.producto.precio;
+            const subtotal = cantidad * precio;
+            
+            const nuevoItem = {
+                numero: numeroItem++,
+                codigo: data.producto.codigo,
+                descripcion: data.producto.nombre,
+                cantidad: cantidad,
+                precio: precio,
+                subtotal: subtotal,
+                producto_id: data.producto.id
+            };
+
+            itemsVenta.push(nuevoItem);
+            actualizarTablaItems();
+            
+            // Enfocar de nuevo en la búsqueda para continuar agregando productos
+            setTimeout(() => {
+                document.getElementById('buscar-producto').focus();
+            }, 100);
+            
+            mostrarNotificacion(`✅ ${data.producto.nombre} agregado automáticamente`);
+        } else {
+            alert(data.error || 'Error al seleccionar producto');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al seleccionar el producto');
+    }
+}
+
+function actualizarSubtotalPreview() {
+    if (!productoSeleccionado) return;
+    
+    const cantidad = parseInt(document.getElementById('cantidad-producto').value) || 0;
+    const subtotal = cantidad * productoSeleccionado.precio;
+    
+    document.getElementById('subtotal-preview').textContent = formatGuaranies(subtotal);
+}
+
+// ===== FUNCIONES DE VENTA =====
+
+function agregarItem() {
+    if (!productoSeleccionado) {
+        alert('Debe seleccionar un producto primero');
+        return;
+    }
+    
+    const cantidad = parseInt(document.getElementById('cantidad-producto').value) || 0;
+    
+    if (cantidad <= 0) {
+        alert('La cantidad debe ser mayor a 0');
+        document.getElementById('cantidad-producto').focus();
+        return;
+    }
+
+    const precio = productoSeleccionado.precio;
+    const subtotal = cantidad * precio;
+    
+    const nuevoItem = {
+        numero: numeroItem++,
+        codigo: productoSeleccionado.codigo,
+        descripcion: productoSeleccionado.nombre,
+        cantidad: cantidad,
+        precio: precio,
+        subtotal: subtotal,
+        producto_id: productoSeleccionado.id
+    };
+
+    itemsVenta.push(nuevoItem);
+    actualizarTablaItems();
+    limpiarFormularioItem();
+    
+    setTimeout(() => {
+        const buscarInput = document.getElementById('buscar-producto');
+        buscarInput.focus();
+    }, 100);
+    
+    mostrarNotificacion(`✅ ${productoSeleccionado.nombre} agregado`);
+}
+
+function actualizarTablaItems() {
+    const tbody = document.getElementById('tabla-items');
+    const tablaVacia = document.getElementById('tabla-vacia');
+    
+    // Limpiar tabla
+    tbody.innerHTML = '';
+    
+    if (itemsVenta.length === 0) {
+        tbody.appendChild(tablaVacia);
+        totalVenta = 0;
+    } else {
+        totalVenta = 0;
+        
+        itemsVenta.forEach((item, index) => {
+            totalVenta += item.subtotal;
+            
+            const fila = document.createElement('tr');
+            fila.className = 'border-t hover:bg-gray-50';
+            fila.innerHTML = `
+                <td class="px-2 py-1 font-medium">${item.numero}</td>
+                <td class="px-2 py-1">${item.codigo}</td>
+                <td class="px-2 py-1" title="${item.descripcion}">
+                    ${item.descripcion.length > 20 ? item.descripcion.substring(0, 20) + '...' : item.descripcion}
+                </td>
+                <td class="px-2 py-1 text-center">${item.cantidad}</td>
+                <td class="px-2 py-1 text-center font-bold text-orange-600">${formatGuaranies(item.precio)}</td>
+                <td class="px-2 py-1 text-center font-bold text-orange-600">${formatGuaranies(item.subtotal)}</td>
+                <td class="px-2 py-1 text-center">
+                    <button onclick="eliminarItem(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors" title="Eliminar item">
+                        ❌
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(fila);
+        });
+    }
+
+    document.getElementById('total-venta-grande').textContent = formatGuaranies(totalVenta);
+    document.getElementById('cantidad-items').textContent = `${itemsVenta.length} items`;
+    
+    const hayItems = itemsVenta.length > 0 && tarjetaActual;
+    document.getElementById('btn-saldo-virtual').disabled = !hayItems;
+    document.getElementById('btn-pago-mixto').disabled = !hayItems;
+    document.getElementById('btn-pago-efectivo').disabled = !hayItems;
+}
+
+function eliminarItem(index) {
+    if (confirm('¿Eliminar este item?')) {
+        itemsVenta.splice(index, 1);
+        actualizarTablaItems();
+        mostrarNotificacion('🗑️ Item eliminado');
+    }
+}
+
+function limpiarFormularioItem() {
+    document.getElementById('buscar-producto').value = '';
+    document.getElementById('descripcion-producto').value = '';
+    document.getElementById('cantidad-producto').value = '1';
+    document.getElementById('precio-producto').value = '';
+    document.getElementById('subtotal-preview').textContent = 'Gs. 0';
+    document.getElementById('resultados-productos').classList.add('hidden');
+    productoSeleccionado = null;
+}
+
+// ===== FUNCIONES DE MODALES =====
+
+function cerrarTodosLosModales() {
+    const modals = ['modal-saldo-virtual', 'modal-pago-mixto', 'modal-pago-efectivo', 'modal-vaciar-venta'];
+    modals.forEach(modalId => {
+        document.getElementById(modalId).classList.add('hidden');
+    });
+}
+
+// Modal Saldo Virtual
+function abrirModalSaldoVirtual() {
+    if (!tarjetaActual || itemsVenta.length === 0) return;
+
+    if (tarjetaActual.saldoDisponible < totalVenta) {
+        alert(`Saldo insuficiente.\nSaldo disponible: ${formatGuaranies(tarjetaActual.saldoDisponible)}\nTotal a pagar: ${formatGuaranies(totalVenta)}\n\nUse pago mixto para completar la diferencia.`);
+        return;
+    }
+
+    document.getElementById('modal-sv-hijo').textContent = tarjetaActual.nombreHijo;
+    document.getElementById('modal-sv-tarjeta').textContent = tarjetaActual.numeroTarjeta;
+    document.getElementById('modal-sv-total').textContent = formatGuaranies(totalVenta);
+    document.getElementById('modal-sv-saldo-actual').textContent = formatGuaranies(tarjetaActual.saldoDisponible);
+    document.getElementById('modal-sv-saldo-despues').textContent = formatGuaranies(tarjetaActual.saldoDisponible - totalVenta);
+    
+    document.getElementById('modal-saldo-virtual').classList.remove('hidden');
+}
+
+function cerrarModalSaldoVirtual() {
+    document.getElementById('modal-saldo-virtual').classList.add('hidden');
+}
+
+async function procesarPagoSaldoVirtual() {
+    try {
+        const response = await fetch('/ventas/api/procesar-venta-saldo/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                hijo_id: tarjetaActual.id,
+                items: itemsVenta.map(item => ({
+                    producto_id: item.producto_id,
+                    cantidad: item.cantidad
+                }))
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert(`✅ ${data.mensaje}\n\nNuevo saldo: ${formatGuaranies(data.nuevo_saldo)}`);
+            tarjetaActual.saldoDisponible = data.nuevo_saldo;
+            itemsVenta = [];
+            numeroItem = 1;
+            actualizarTablaItems();
+            mostrarInfoTarjeta();
+            cerrarModalSaldoVirtual();
+            mostrarNotificacion('🎉 Venta procesada');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la venta');
+    }
+}
+
+// Modal Pago Mixto
+function abrirModalPagoMixto() {
+    if (!tarjetaActual || itemsVenta.length === 0) return;
+
+    if (tarjetaActual.saldoDisponible >= totalVenta) {
+        alert('El saldo virtual es suficiente. Use "Pago con Saldo Virtual".');
+        return;
+    }
+
+    document.getElementById('modal-mixto-total').textContent = formatGuaranies(totalVenta);
+    document.getElementById('modal-mixto-saldo').value = tarjetaActual.saldoDisponible.toLocaleString('es-PY').replace(/,/g, '.');
+    document.getElementById('modal-mixto-metodo').value = '';
+    document.getElementById('modal-mixto-monto').value = '';
+    document.getElementById('modal-mixto-monto-container').style.display = 'none';
+    document.getElementById('modal-mixto-vuelto').classList.add('hidden');
+    
+    const btnConfirmar = document.getElementById('btn-confirmar-mixto');
+    btnConfirmar.disabled = true;
+    btnConfirmar.classList.add('opacity-50');
+    
+    document.getElementById('modal-pago-mixto').classList.remove('hidden');
+}
+
+function cerrarModalPagoMixto() {
+    document.getElementById('modal-pago-mixto').classList.add('hidden');
+}
+
+function mostrarMontoAdicionalMixto() {
+    const metodo = document.getElementById('modal-mixto-metodo').value;
+    const container = document.getElementById('modal-mixto-monto-container');
+    
+    if (metodo) {
+        const montoFaltante = totalVenta - tarjetaActual.saldoDisponible;
+        document.getElementById('modal-mixto-monto').value = montoFaltante.toLocaleString('es-PY').replace(/,/g, '.');
+        container.style.display = 'block';
+        validarPagoMixtoModal();
+    } else {
+        container.style.display = 'none';
+        document.getElementById('modal-mixto-vuelto').classList.add('hidden');
+    }
+}
+
+function validarPagoMixtoModal() {
+    const metodo = document.getElementById('modal-mixto-metodo').value;
+    const montoTexto = document.getElementById('modal-mixto-monto').value.replace(/\./g, '');
+    const monto = parseFloat(montoTexto) || 0;
+    const montoFaltante = totalVenta - tarjetaActual.saldoDisponible;
+    
+    const btnConfirmar = document.getElementById('btn-confirmar-mixto');
+    const vueltoDiv = document.getElementById('modal-mixto-vuelto');
+    
+    if (metodo && monto >= montoFaltante) {
+        btnConfirmar.disabled = false;
+        btnConfirmar.classList.remove('opacity-50');
+        
+        if (monto > montoFaltante) {
+            const vuelto = monto - montoFaltante;
+            document.getElementById('modal-mixto-vuelto-monto').textContent = formatGuaranies(vuelto);
+            vueltoDiv.classList.remove('hidden');
+        } else {
+            vueltoDiv.classList.add('hidden');
+        }
+    } else {
+        btnConfirmar.disabled = true;
+        btnConfirmar.classList.add('opacity-50');
+        vueltoDiv.classList.add('hidden');
+    }
+}
+
+async function procesarPagoMixtoModal() {
+    const metodo = document.getElementById('modal-mixto-metodo').value;
+    const montoTexto = document.getElementById('modal-mixto-monto').value.replace(/\./g, '');
+    const monto = parseFloat(montoTexto) || 0;
+    
+    if (!metodo || monto <= 0) {
+        alert('Complete todos los campos');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/ventas/api/procesar-venta-mixta/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                hijo_id: tarjetaActual.id,
+                items: itemsVenta.map(item => ({
+                    producto_id: item.producto_id,
+                    cantidad: item.cantidad
+                })),
+                forma_pago_adicional: metodo,
+                monto_adicional: monto
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            let mensaje = `✅ ${data.mensaje}\n\nNuevo saldo: ${formatGuaranies(data.nuevo_saldo)}`;
+            
+            if (data.vuelto && data.vuelto > 0) {
+                mensaje += `\n💰 Entregue vuelto: ${formatGuaranies(data.vuelto)}`;
+            }
+            
+            alert(mensaje);
+            
+            tarjetaActual.saldoDisponible = data.nuevo_saldo;
+            itemsVenta = [];
+            numeroItem = 1;
+            actualizarTablaItems();
+            mostrarInfoTarjeta();
+            cerrarModalPagoMixto();
+            mostrarNotificacion('🎉 Pago mixto procesado');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar el pago mixto');
+    }
+}
+
+// Modal Pago Efectivo
+function abrirModalPagoEfectivo() {
+    if (!tarjetaActual || itemsVenta.length === 0) return;
+
+    document.getElementById('modal-efectivo-total').textContent = formatGuaranies(totalVenta);
+    document.getElementById('modal-efectivo-recibido').value = totalVenta.toLocaleString('es-PY').replace(/,/g, '.');
+    document.getElementById('modal-efectivo-vuelto-container').classList.add('hidden');
+    
+    const btnConfirmar = document.getElementById('btn-confirmar-efectivo');
+    btnConfirmar.disabled = true;
+    btnConfirmar.classList.add('opacity-50');
+    
+    document.getElementById('modal-pago-efectivo').classList.remove('hidden');
+    
+    setTimeout(() => {
+        document.getElementById('modal-efectivo-recibido').focus();
+        document.getElementById('modal-efectivo-recibido').select();
+    }, 100);
+}
+
+function cerrarModalPagoEfectivo() {
+    document.getElementById('modal-pago-efectivo').classList.add('hidden');
+}
+
+function calcularVueltoEfectivoModal() {
+    const montoTexto = document.getElementById('modal-efectivo-recibido').value.replace(/\./g, '');
+    const monto = parseFloat(montoTexto) || 0;
+    const vueltoContainer = document.getElementById('modal-efectivo-vuelto-container');
+    const btnConfirmar = document.getElementById('btn-confirmar-efectivo');
+    
+    if (monto >= totalVenta) {
+        const vuelto = monto - totalVenta;
+        document.getElementById('modal-efectivo-vuelto').textContent = formatGuaranies(vuelto);
+        vueltoContainer.classList.remove('hidden');
+        btnConfirmar.disabled = false;
+        btnConfirmar.classList.remove('opacity-50');
+    } else {
+        vueltoContainer.classList.add('hidden');
+        btnConfirmar.disabled = true;
+        btnConfirmar.classList.add('opacity-50');
+    }
+}
+
+async function procesarPagoEfectivoModal() {
+    const montoTexto = document.getElementById('modal-efectivo-recibido').value.replace(/\./g, '');
+    const monto = parseFloat(montoTexto) || 0;
+    
+    if (monto < totalVenta) {
+        alert('El monto recibido es insuficiente');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/ventas/api/procesar-venta-efectivo/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                hijo_id: tarjetaActual.id,
+                items: itemsVenta.map(item => ({
+                    producto_id: item.producto_id,
+                    cantidad: item.cantidad
+                })),
+                monto_efectivo_recibido: monto
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            let mensaje = `✅ ${data.mensaje}`;
+            
+            if (data.vuelto && data.vuelto > 0) {
+                mensaje += `\n\n💰 Entregue vuelto: ${formatGuaranies(data.vuelto)}`;
+            }
+            
+            alert(mensaje);
+            
+            itemsVenta = [];
+            numeroItem = 1;
+            actualizarTablaItems();
+            cerrarModalPagoEfectivo();
+            mostrarNotificacion('🎉 Pago efectivo procesado');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar el pago en efectivo');
+    }
+}
+
+// Modal Vaciar Venta
+function abrirModalVaciarVenta() {
+    if (itemsVenta.length === 0) {
+        mostrarNotificacion('No hay items para eliminar', 'info');
+        return;
+    }
+    document.getElementById('modal-vaciar-venta').classList.remove('hidden');
+}
+
+function cerrarModalVaciarVenta() {
+    document.getElementById('modal-vaciar-venta').classList.add('hidden');
+}
+
+function confirmarVaciarVenta() {
+    itemsVenta = [];
+    numeroItem = 1;
+    actualizarTablaItems();
+    cerrarModalVaciarVenta();
+    mostrarNotificacion('🧹 Venta vaciada');
+}
+
+// ===== FUNCIONES AUXILIARES =====
+
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    const notificacion = document.createElement('div');
+    let bgColor = 'bg-green-500';
+    
+    switch(tipo) {
+        case 'success': bgColor = 'bg-green-500'; break;
+        case 'error': bgColor = 'bg-red-500'; break;
+        case 'warning': bgColor = 'bg-yellow-500'; break;
+        case 'info': bgColor = 'bg-blue-500'; break;
+    }
+    
+    notificacion.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white z-50 transition-all duration-300 ${bgColor} text-sm`;
+    notificacion.textContent = mensaje;
+    
+    document.body.appendChild(notificacion);
+    
+    setTimeout(() => {
+        notificacion.style.opacity = '0';
+        notificacion.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (document.body.contains(notificacion)) {
+                document.body.removeChild(notificacion);
+            }
+        }, 300);
+    }, 3000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Producto - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Crear Nuevo Producto
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Agregar un nuevo producto al inventario de la cantina
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{% url 'productos:lista_productos' %}" class="btn-secondary mr-3">
+            ← Volver a Productos
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-lg font-medium">Información del Producto</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Información Básica -->
+                    <div class="space-y-6">
+                        <div>
+                            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
+                            <input type="text" id="nombre" name="nombre" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Ej: Sandwich de Pollo">
+                        </div>
+
+                        <div>
+                            <label for="codigo" class="block text-sm font-medium text-gray-700">Código del Producto</label>
+                            <input type="text" id="codigo" name="codigo"
+                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Ej: SAND001">
+                        </div>
+
+                        <div>
+                            <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría *</label>
+                            <select id="categoria" name="categoria" required
+                                    class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Seleccione una categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                            <textarea id="descripcion" name="descripcion" rows="3"
+                                      class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Descripción detallada del producto"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Precios y Stock -->
+                    <div class="space-y-6">
+                        <div>
+                            <label for="precio_costo" class="block text-sm font-medium text-gray-700">Precio de Costo (Gs.) *</label>
+                            <input type="number" id="precio_costo" name="precio_costo" step="0.01" min="0" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="0.00">
+                        </div>
+
+                        <div>
+                            <label for="precio_venta" class="block text-sm font-medium text-gray-700">Precio de Venta (Gs.) *</label>
+                            <input type="number" id="precio_venta" name="precio_venta" step="0.01" min="0" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="0.00">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="stock_actual" class="block text-sm font-medium text-gray-700">Stock Inicial</label>
+                                <input type="number" id="stock_actual" name="stock_actual" min="0" value="0"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div>
+                                <label for="stock_minimo" class="block text-sm font-medium text-gray-700">Stock Mínimo</label>
+                                <input type="number" id="stock_minimo" name="stock_minimo" min="0" value="0"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div>
+                                <label for="stock_maximo" class="block text-sm font-medium text-gray-700">Stock Máximo</label>
+                                <input type="number" id="stock_maximo" name="stock_maximo" min="0"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="requiere_stock" name="requiere_stock" value="1" checked
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="requiere_stock" class="ml-2 block text-sm text-gray-700">
+                                    Requiere control de stock
+                                </label>
+                            </div>
+
+                            <div class="flex items-center">
+                                <input type="checkbox" id="disponible" name="disponible" value="1" checked
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="disponible" class="ml-2 block text-sm text-gray-700">
+                                    Producto disponible para venta
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imagen del Producto -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div>
+                        <label for="imagen" class="block text-sm font-medium text-gray-700">Imagen del Producto</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="imagen" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                        <span>Subir archivo</span>
+                                        <input id="imagen" name="imagen" type="file" accept="image/*" class="sr-only">
+                                    </label>
+                                    <p class="pl-1">o arrastra y suelta</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="mt-6 pt-6 border-t border-gray-200 flex justify-end space-x-3">
+                    <a href="{% url 'productos:lista_productos' %}" class="btn-secondary">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        Crear Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para formatear números como guaraníes
+    function formatGuaranies(value) {
+        if (!value && value !== 0) return '0';
+        const num = parseInt(value);
+        return num.toLocaleString('es-PY').replace(/,/g, '.');
+    }
+
+    // Calcular margen automáticamente
+    const precioCosto = document.getElementById('precio_costo');
+    const precioVenta = document.getElementById('precio_venta');
+    
+    function calcularMargen() {
+        const costo = parseFloat(precioCosto.value) || 0;
+        const venta = parseFloat(precioVenta.value) || 0;
+        
+        if (costo > 0 && venta > costo) {
+            const margen = ((venta - costo) / costo * 100).toFixed(2);
+            console.log(`Margen calculado: ${margen}%`);
+        }
+    }
+    
+    precioCosto.addEventListener('input', calcularMargen);
+    precioVenta.addEventListener('input', calcularMargen);
+    
+    // Generar código automático basado en nombre y categoría
+    const nombre = document.getElementById('nombre');
+    const categoria = document.getElementById('categoria');
+    const codigo = document.getElementById('codigo');
+    
+    function generarCodigo() {
+        if (nombre.value && categoria.value && !codigo.value) {
+            const nombreCorto = nombre.value.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, '');
+            const categoriaSelect = categoria.options[categoria.selectedIndex];
+            const categoriaCorto = categoriaSelect ? categoriaSelect.text.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '') : '';
+            const numero = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            
+            codigo.value = `${categoriaCorto}${nombreCorto}${numero}`;
+        }
+    }
+    
+    nombre.addEventListener('blur', generarCodigo);
+    categoria.addEventListener('change', generarCodigo);
+});
+</script>
+{% endblock %}

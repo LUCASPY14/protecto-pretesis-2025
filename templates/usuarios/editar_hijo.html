@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {{ titulo }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            Modifica la información del hijo
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver al Detalle
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Información actual del hijo -->
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center">
+            <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-800">Editando: {{ hijo.nombre_completo }}</h3>
+                <p class="text-sm text-blue-600">
+                    Padre: {{ hijo.padre.get_full_name }} | 
+                    Saldo actual: {{ hijo.saldo_virtual|floatformat:0 }} Gs. |
+                    Tarjeta: {{ hijo.numero_tarjeta|default:"Sin asignar" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de edición -->
+    <div class="card">
+        <div class="p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Información Personal -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+                            Información Personal
+                        </h3>
+                        
+                        <div>
+                            <label for="{{ form.nombre_completo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.nombre_completo.label }}
+                            </label>
+                            {{ form.nombre_completo }}
+                            {% if form.nombre_completo.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.nombre_completo.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.fecha_nacimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.fecha_nacimiento.label }}
+                            </label>
+                            {{ form.fecha_nacimiento }}
+                            {% if form.fecha_nacimiento.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.fecha_nacimiento.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.grado_escolar.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.grado_escolar.label }}
+                            </label>
+                            {{ form.grado_escolar }}
+                            {% if form.grado_escolar.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.grado_escolar.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Saldo -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+                            Configuración de Saldo
+                        </h3>
+
+                        <div class="flex items-center">
+                            {{ form.puede_saldo_negativo }}
+                            <label for="{{ form.puede_saldo_negativo.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                                {{ form.puede_saldo_negativo.label }}
+                            </label>
+                        </div>
+
+                        <div id="limite-negativo-container" style="display: {% if form.puede_saldo_negativo.value %}block{% else %}none{% endif %};">
+                            <label for="{{ form.limite_saldo_negativo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.limite_saldo_negativo.label }}
+                            </label>
+                            {{ form.limite_saldo_negativo }}
+                            {% if form.limite_saldo_negativo.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.limite_saldo_negativo.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">
+                                Límite de saldo negativo permitido en guaraníes
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="{{ form.limite_gasto_diario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.limite_gasto_diario.label }}
+                            </label>
+                            {{ form.limite_gasto_diario }}
+                            {% if form.limite_gasto_diario.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.limite_gasto_diario.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">
+                                Límite máximo de gasto por día (0 = sin límite)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Estado del Perfil</h3>
+                    
+                    <div class="flex items-center">
+                        {{ form.activo }}
+                        <label for="{{ form.activo.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                            {{ form.activo.label }}
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Si está inactivo, el hijo no podrá realizar compras
+                    </p>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="border-t border-gray-200 pt-6">
+                    <label for="{{ form.observaciones.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.observaciones.label }}
+                    </label>
+                    {{ form.observaciones }}
+                    {% if form.observaciones.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.observaciones.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Botones -->
+                <div class="border-t border-gray-200 pt-6 flex justify-end space-x-3">
+                    <a href="{% url 'usuarios:detalle_hijo' hijo.pk %}" class="btn-secondary">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar/ocultar límite de saldo negativo
+    const puedeNegativo = document.getElementById('{{ form.puede_saldo_negativo.id_for_label }}');
+    const limiteContainer = document.getElementById('limite-negativo-container');
+    
+    if (puedeNegativo) {
+        puedeNegativo.addEventListener('change', function() {
+            limiteContainer.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+</script>
+{% endblock %}

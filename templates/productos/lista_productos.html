@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Productos - La Cantina de Tita{% endblock %}
+
+{% block page_header %}
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0 flex items-center">
+        <img src="{% static 'images/logo-cantina-tita.png' %}" alt="La Cantina de Tita" class="h-12 w-auto mr-4">
+        <div>
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                Gestión de Productos
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Administra el inventario y control de productos de la cantina
+            </p>
+        </div>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{% url 'productos:crear_producto' %}" class="btn-primary">
+            Nuevo Producto
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="text-lg font-medium">Lista de Productos</h3>
+    </div>
+    <div class="card-body">
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="text-center p-6 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">Total Productos</h4>
+                <p class="text-2xl font-bold text-blue-600">{{ productos.count }}</p>
+            </div>
+            <div class="text-center p-6 bg-yellow-50 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">Stock Bajo</h4>
+                <p class="text-2xl font-bold text-yellow-600">{{ productos_stock_bajo|default:0 }}</p>
+            </div>
+            <div class="text-center p-6 bg-green-50 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">Productos Activos</h4>
+                <p class="text-2xl font-bold text-green-600">{{ productos_activos|default:productos.count }}</p>
+            </div>
+        </div>
+
+        <!-- Lista de Productos -->
+        {% if productos %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Producto
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Categoría
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Precio
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Stock
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Estado
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for producto in productos %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    {% if producto.imagen %}
+                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                    {% else %}
+                                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-500 font-medium text-sm">{{ producto.nombre|first|upper }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ producto.nombre }}</div>
+                                    {% if producto.codigo %}
+                                    <div class="text-sm text-gray-500">Código: {{ producto.codigo }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ producto.categoria.nombre }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div class="text-sm font-medium text-gray-900">{{ producto.precio_venta|guaranies }}</div>
+                            <div class="text-sm text-gray-500">Costo: {{ producto.precio_costo|guaranies }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if producto.requiere_stock %}
+                                {% if producto.stock_actual <= producto.stock_minimo %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    {{ producto.stock_actual }} unidades
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {{ producto.stock_actual }} unidades
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-sm text-gray-500">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if producto.disponible %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Activo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Inactivo
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{% url 'productos:detalle_producto' producto.pk %}" class="text-blue-600 hover:text-blue-900 mr-3">Ver</a>
+                            <a href="{% url 'productos:editar_producto' producto.pk %}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay productos</h3>
+            <p class="mt-1 text-sm text-gray-500">Comienza creando tu primer producto.</p>
+            <div class="mt-6">
+                <a href="{% url 'productos:crear_producto' %}" class="btn-primary">
+                    Nuevo Producto
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mt-6">
+            <p class="text-sm text-gray-500">
+                Para continuar el desarrollo, las siguientes funcionalidades están planificadas:
+            </p>
+            <ul class="mt-2 text-sm text-gray-600 list-disc list-inside">
+                <li>Lista completa de productos con búsqueda</li>
+                <li>Gestión de categorías</li>
+                <li>Control de stock en tiempo real</li>
+                <li>Alertas de stock bajo</li>
+                <li>Historial de movimientos</li>
+                <li>Gestión de proveedores</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

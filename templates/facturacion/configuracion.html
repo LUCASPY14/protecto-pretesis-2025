@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - La Cantina de Tita{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ title }}</h1>
+            <p class="text-gray-600">Configuración del sistema de facturación</p>
+        </div>
+        <a href="{% url 'facturacion:lista_facturas' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Volver
+        </a>
+    </div>
+
+    <form method="POST" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Datos de la Empresa -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-building text-blue-500 mr-2"></i>
+                Datos de la Empresa
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Empresa</label>
+                    <input type="text" name="empresa_nombre" value="{{ config.empresa_nombre }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RUT de la Empresa</label>
+                    <input type="text" name="empresa_rut" value="{{ config.empresa_rut }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                    <textarea name="empresa_direccion" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>{{ config.empresa_direccion }}</textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                    <input type="text" name="empresa_telefono" value="{{ config.empresa_telefono }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" name="empresa_email" value="{{ config.empresa_email }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Numeración -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-list-ol text-green-500 mr-2"></i>
+                Numeración de Documentos
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Próximo Número de Boleta</label>
+                    <div class="flex items-center">
+                        <span class="bg-gray-100 px-3 py-2 border border-gray-300 rounded-l-lg text-gray-600">BOL-</span>
+                        <input type="number" name="proximo_numero_boleta" value="{{ config.proximo_numero_boleta }}" 
+                               class="flex-1 px-3 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                               min="1" required readonly>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Solo lectura - se actualiza automáticamente</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Próximo Número de Factura</label>
+                    <div class="flex items-center">
+                        <span class="bg-gray-100 px-3 py-2 border border-gray-300 rounded-l-lg text-gray-600">FAC-</span>
+                        <input type="number" name="proximo_numero_factura" value="{{ config.proximo_numero_factura }}" 
+                               class="flex-1 px-3 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                               min="1" required readonly>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Solo lectura - se actualiza automáticamente</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Impuestos -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-percentage text-purple-500 mr-2"></i>
+                Configuración de Impuestos
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Porcentaje de IVA (%)</label>
+                    <div class="flex items-center">
+                        <input type="number" name="iva_porcentaje" value="{{ config.iva_porcentaje }}" 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                               min="0" max="100" step="0.01" required>
+                        <span class="bg-gray-100 px-3 py-2 border border-gray-300 rounded-r-lg text-gray-600">%</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Aplica solo a facturas afectas</p>
+                </div>
+                
+                <div class="flex flex-col justify-center">
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <h3 class="font-medium text-blue-800 mb-2">Tipos de Documento</h3>
+                        <ul class="text-sm text-blue-700 space-y-1">
+                            <li>• <strong>Boleta:</strong> Sin IVA discriminado</li>
+                            <li>• <strong>Factura Exenta:</strong> Sin IVA</li>
+                            <li>• <strong>Factura Afecta:</strong> Con IVA {{ config.iva_porcentaje }}%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Emisión -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-cog text-orange-500 mr-2"></i>
+                Configuración de Emisión
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" id="emite_boletas" name="emite_boletas" 
+                           {% if config.emite_boletas %}checked{% endif %}
+                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="emite_boletas" class="ml-2 block text-sm text-gray-900">
+                        Habilitar emisión de boletas
+                    </label>
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" id="emite_facturas" name="emite_facturas" 
+                           {% if config.emite_facturas %}checked{% endif %}
+                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="emite_facturas" class="ml-2 block text-sm text-gray-900">
+                        Habilitar emisión de facturas
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-info-circle text-indigo-500 mr-2"></i>
+                Información del Sistema
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-blue-800 mb-2">Última Actualización</h3>
+                    <p class="text-blue-700">{{ config.updated_at|date:"d/m/Y H:i" }}</p>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-green-800 mb-2">Configuración Creada</h3>
+                    <p class="text-green-700">{{ config.created_at|date:"d/m/Y H:i" }}</p>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-purple-800 mb-2">Estado del Sistema</h3>
+                    <p class="text-purple-700">
+                        {% if config.emite_boletas or config.emite_facturas %}
+                        <i class="fas fa-check-circle mr-1"></i>Activo
+                        {% else %}
+                        <i class="fas fa-times-circle mr-1"></i>Inactivo
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'facturacion:lista_facturas' %}" 
+               class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-save mr-2"></i>Guardar Configuración
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        const emiteBoletas = document.getElementById('emite_boletas').checked;
+        const emiteFacturas = document.getElementById('emite_facturas').checked;
+        
+        if (!emiteBoletas && !emiteFacturas) {
+            e.preventDefault();
+            alert('Debe habilitar al menos un tipo de documento (boletas o facturas)');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

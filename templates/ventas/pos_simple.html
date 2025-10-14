@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">🏪 Punto de Venta</h1>
+    
+    <!-- Test de contenido -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Estado del Sistema</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 class="font-medium text-green-800">✅ Template Cargado</h3>
+                <p class="text-sm text-green-600">El template se está renderizando correctamente</p>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="font-medium text-blue-800">📦 Productos Disponibles</h3>
+                <p class="text-sm text-blue-600">{{ productos|length }} productos encontrados</p>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 class="font-medium text-yellow-800">👤 Usuario Actual</h3>
+                <p class="text-sm text-yellow-600">{{ request.user.username }} ({{ request.user.tipo_usuario }})</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Productos Simple -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">📱 Productos Disponibles</h2>
+        
+        {% if productos %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {% for producto in productos %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer"
+                     onclick="agregarProducto({{ producto.id }}, '{{ producto.nombre|escapejs }}', {{ producto.precio_venta }})">
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-xl">🛍️</span>
+                        </div>
+                        <h3 class="font-bold text-gray-900 mb-1 text-sm">{{ producto.nombre }}</h3>
+                        <p class="text-xs text-gray-600 mb-2">{{ producto.categoria.nombre }}</p>
+                        <p class="text-lg font-bold text-green-600">{{ producto.precio_venta|guaranies }}</p>
+                        {% if producto.requiere_stock %}
+                            <p class="text-xs text-gray-500">Stock: {{ producto.stock_actual }}</p>
+                        {% else %}
+                            <p class="text-xs text-blue-500">Sin límite stock</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">🏪</div>
+                <h3 class="text-xl font-medium text-gray-600 mb-2">No hay productos disponibles</h3>
+                <p class="text-gray-500 mb-4">Agrega algunos productos para comenzar a vender</p>
+                <a href="{% url 'productos:crear_producto' %}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">
+                    ➕ Agregar Producto
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Carrito Simple -->
+    <div class="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">🛒 Carrito de Compras</h2>
+        
+        <div id="carrito-simple" class="min-h-24">
+            <div id="carrito-vacio" class="text-center py-8">
+                <span class="text-4xl">🛒</span>
+                <p class="text-gray-500 mt-2">Carrito vacío - Selecciona productos</p>
+            </div>
+            <div id="carrito-items" class="space-y-2"></div>
+        </div>
+
+        <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-semibold">Total:</span>
+                <span id="total-display" class="text-2xl font-bold text-green-600">Gs. 0</span>
+            </div>
+            <div class="flex space-x-3">
+                <button id="btn-procesar" onclick="procesarVenta()" disabled
+                        class="flex-1 bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 disabled:bg-gray-400">
+                    💳 Procesar Venta
+                </button>
+                <button onclick="limpiarCarrito()"
+                        class="bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600">
+                    🗑️ Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let carrito = [];
+let totalVenta = 0;
+
+console.log('🚀 Iniciando POS Simple...');
+
+// Función para formatear guaraníes
+function formatGuaranies(value) {
+    if (!value && value !== 0) return 'Gs. 0';
+    const num = parseInt(value);
+    return 'Gs. ' + num.toLocaleString('es-PY').replace(/,/g, '.');
+}
+
+function agregarProducto(id, nombre, precio) {
+    console.log('📦 Agregando producto:', id, nombre, precio);
+    
+    // Buscar si ya existe en el carrito
+    const itemExistente = carrito.find(item => item.id === id);
+    
+    if (itemExistente) {
+        itemExistente.cantidad += 1;
+        console.log('➕ Cantidad aumentada:', itemExistente);
+    } else {
+        const nuevoItem = {
+            id: id,
+            nombre: nombre,
+            precio: parseFloat(precio),
+            cantidad: 1
+        };
+        carrito.push(nuevoItem);
+        console.log('🆕 Nuevo item agregado:', nuevoItem);
+    }
+    
+    actualizarCarrito();
+}
+
+function removerProducto(id) {
+    console.log('🗑️ Removiendo producto:', id);
+    carrito = carrito.filter(item => item.id !== id);
+    actualizarCarrito();
+}
+
+function actualizarCarrito() {
+    console.log('🔄 Actualizando carrito...');
+    
+    const carritoItems = document.getElementById('carrito-items');
+    const carritoVacio = document.getElementById('carrito-vacio');
+    const btnProcesar = document.getElementById('btn-procesar');
+    const totalDisplay = document.getElementById('total-display');
+    
+    if (carrito.length === 0) {
+        console.log('🛒 Carrito vacío');
+        carritoItems.innerHTML = '';
+        carritoVacio.style.display = 'block';
+        btnProcesar.disabled = true;
+        totalVenta = 0;
+    } else {
+        console.log('📋 Carrito con items:', carrito.length);
+        carritoVacio.style.display = 'none';
+        btnProcesar.disabled = false;
+        
+        let html = '';
+        totalVenta = 0;
+        
+        carrito.forEach(item => {
+            const itemTotal = item.precio * item.cantidad;
+            totalVenta += itemTotal;
+            
+            html += `
+                <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                        <h4 class="font-medium">${item.nombre}</h4>
+                        <p class="text-sm text-gray-600">Cantidad: ${item.cantidad} × ${formatGuaranies(item.precio)}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-green-600">${formatGuaranies(itemTotal)}</span>
+                        <button onclick="removerProducto(${item.id})" 
+                                class="text-red-500 hover:text-red-700 px-2 py-1 rounded">
+                            ❌
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        carritoItems.innerHTML = html;
+    }
+    
+    totalDisplay.textContent = formatGuaranies(totalVenta);
+    console.log('💰 Total actualizado:', formatGuaranies(totalVenta));
+}
+
+function limpiarCarrito() {
+    if (carrito.length > 0 && confirm('¿Limpiar carrito?')) {
+        console.log('🧹 Limpiando carrito...');
+        carrito = [];
+        actualizarCarrito();
+    }
+}
+
+function procesarVenta() {
+    if (carrito.length === 0) return;
+    
+    console.log('💳 Procesando venta...');
+    alert(`Procesando venta por ${formatGuaranies(totalVenta)}\n\n${carrito.length} productos\n\n(Funcionalidad completa en desarrollo)`);
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ DOM cargado, inicializando POS...');
+    actualizarCarrito();
+    console.log('🎉 POS Simple listo!');
+});
+</script>
+{% endblock %}
