@@ -1,4 +1,34 @@
+# Cambios recientes (Octubre 2025)
 
+## Mejoras en permisos y roles
+- **Recarga de saldo virtual**: Solo usuarios con tipo `administrador` o `cajero` pueden acceder a la funcionalidad de recarga de saldo virtual. Los padres no ven ni pueden usar esta opción.
+- **Agregar hijos (PerfilHijo)**: Solo usuarios con tipo `administrador` pueden agregar nuevos hijos. Los padres no ven ni pueden usar esta opción.
+- **Scripts de gestión**:
+  - `activar_puntos_venta.py`: Activa los puntos de venta.
+  - `renombrar_puntos_venta.py`: Renombra los puntos de venta.
+  - `usuarios/management/commands/cargar_datos_demo.py`: Carga datos de prueba (padres, hijos, tarjetas, productos).
+
+### Cómo probar las nuevas restricciones
+
+1. **Recarga de saldo virtual**
+   - Inicia sesión como `administrador` o `cajero` y verifica que puedes ver y usar la opción de recarga de saldo virtual en el detalle de cada hijo.
+   - Inicia sesión como `padre` y verifica que NO aparece la opción de recarga de saldo virtual.
+
+2. **Agregar hijos**
+   - Inicia sesión como `administrador` y verifica que puedes agregar nuevos hijos desde la gestión de usuarios.
+   - Inicia sesión como `padre` y verifica que NO aparece la opción para agregar hijos.
+
+### Notas técnicas
+- Se agregó un `.gitignore` para evitar subir archivos compilados, bases de datos locales y backups.
+- Se limpiaron archivos `.pyc` y `__pycache__` del repositorio.
+- Las migraciones de Django han sido actualizadas y compactadas.
+
+### Sugerencias de mejora
+- Añadir pruebas unitarias para las vistas y permisos.
+- Documentar los scripts de gestión en mayor detalle.
+- Considerar un sistema de logs para acciones administrativas.
+
+---
 # protecto-pretesis-2025
 proyecto pretesis 2025 version 1 (falta mejorar el pos)
 
