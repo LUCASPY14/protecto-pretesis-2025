@@ -180,16 +180,12 @@ def detalle_hijo(request, pk):
 @login_required
 def crear_hijo(request):
     """
-    Crear nuevo hijo (solo para padres o administradores)
     """
-    if request.user.tipo_usuario not in ['padre', 'administrador']:
+    # Solo administradores pueden crear hijos
+    if request.user.tipo_usuario != 'administrador':
         messages.error(request, 'No tienes permisos para crear hijos.')
         return redirect('usuarios:dashboard')
-    
-    # Determinar el padre
     padre = None
-    if request.user.tipo_usuario == 'padre':
-        padre = request.user
     
     if request.method == 'POST':
         form = PerfilHijoForm(request.POST, padre=padre)
@@ -230,10 +226,10 @@ def recarga_saldo(request, pk):
     """
     hijo = get_object_or_404(PerfilHijo, pk=pk)
     
-    # Verificar permisos
-    if request.user.tipo_usuario == 'padre' and hijo.padre != request.user:
-        messages.error(request, 'No tienes permisos para recargar saldo a este hijo.')
-        return redirect('usuarios:lista_hijos')
+    # Verificar permisos: solo administradores y cajeros pueden recargar saldo
+    if request.user.tipo_usuario not in ['administrador', 'cajero']:
+        messages.error(request, 'No tienes permisos para recargar saldo virtual.')
+        return redirect('usuarios:detalle_hijo', pk=hijo.pk)
     
     # Obtener recargas recientes para mostrar en el sidebar
     recargas_recientes = RecargaSaldo.objects.filter(

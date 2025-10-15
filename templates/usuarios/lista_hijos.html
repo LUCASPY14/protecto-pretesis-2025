@@ -301,7 +301,7 @@
                                    class="btn-sm btn-outline">
                                     Ver
                                 </a>
-                                {% if user.tipo_usuario == 'padre' or user.tipo_usuario == 'administrador' %}
+                                {% if user.tipo_usuario == 'administrador' or user.tipo_usuario == 'cajero' %}
                                 <a href="{% url 'usuarios:recarga_saldo' hijo.pk %}" 
                                    class="btn-sm btn-primary">
                                     Recargar

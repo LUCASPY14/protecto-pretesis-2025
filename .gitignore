@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+db.sqlite3
+media/
+*.log
+
+# Backup SQL
+backup_tesis2025_*.sql
+
+# Env
+.venv/
+
+# macOS
+.DS_Store

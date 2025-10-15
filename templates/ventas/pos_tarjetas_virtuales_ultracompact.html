@@ -13,24 +13,116 @@
     body { overflow: hidden; }
     html { overflow: hidden; }
     
-    /* Botón Pago Mixto destacado */
-    #btn-pago-mixto {
-        background-color: #ea580c !important;
-        border: 2px solid #c2410c !important;
-    }
-        #btn-pago-mixto:disabled {
-        background-color: #fed7aa !important;
-        color: #9a3412 !important;
-        border-color: #fdba74 !important;
+    /* Botones de pago */
+    .btn-pago {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: 0.5rem;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: all 0.2s;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     
-    </style>
+    /* Botón Saldo Tarjeta */
+    .btn-saldo-tarjeta {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+    }
+    .btn-saldo-tarjeta:hover {
+        background-color: #2563eb;
+    }
+    .btn-saldo-tarjeta:disabled {
+        background-color: #bfdbfe;
+        color: #1e40af;
+    }
+    
+    /* Botón Pago Mixto */
+    .btn-pago-mixto {
+        background-color: #f97316;
+        color: white;
+        border: 2px solid #ea580c;
+    }
+    .btn-pago-mixto:hover {
+        background-color: #ea580c;
+    }
+    .btn-pago-mixto:disabled {
+        background-color: #fed7aa;
+        color: #9a3412;
+        border-color: #fdba74;
+    }
+    
+    /* Botón Pago Efectivo */
+    .btn-pago-efectivo {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+    }
+    .btn-pago-efectivo:hover {
+        background-color: #16a34a;
+    }
+    .btn-pago-efectivo:disabled {
+        background-color: #bbf7d0;
+        color: #166534;
+    }
+    
+    /* Botón Vaciar */
+    .btn-vaciar {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+    }
+    .btn-vaciar:hover {
+        background-color: #dc2626;
+    }
+    
+    /* Tabla de productos */
+    .tabla-productos {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .tabla-productos th {
+        background-color: #f3f4f6;
+        padding: 0.5rem;
+        text-align: left;
+        font-size: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .tabla-productos td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.75rem;
+    }
+    
+    /* Tarjeta info */
+    .tarjeta-info {
+        background-color: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+    }
+    
+    /* Total a pagar */
+    .total-pagar {
+        background: linear-gradient(to right, #ffedd5, #fff7ed);
+        border: 1px solid #fed7aa;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="h-screen bg-gray-50 overflow-hidden">
-    <!-- Header Ultra Compacto -->
+    <!-- Header -->
     <div class="bg-white shadow px-4 py-2 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center space-x-4">
             <h1 class="text-base font-bold text-gray-800">🏪 POS - La Cantina de Tita</h1>
@@ -41,29 +133,30 @@
         </a>
     </div>
 
-    <!-- Contenido Principal - Layout Horizontal Fijo -->
+    <!-- Contenido Principal -->
     <div class="flex h-full" style="height: calc(100vh - 60px);">
         <!-- Columna Izquierda: Tarjeta Virtual -->
-    <div class="w-1/4 bg-white border-r flex flex-col">
-            <!-- Tarjeta Virtual -->
-            <div class="p-3 flex-1">
+        <div class="w-1/4 bg-white border-r flex flex-col">
+            <div class="p-4 flex-1">
                 <h3 class="text-sm font-bold text-gray-800 mb-3">💳 Tarjeta Virtual</h3>
-                <div class="relative mb-3">
+                
+                <!-- Búsqueda de tarjeta -->
+                <div class="relative mb-4">
                     <input type="text" 
                            id="buscar-tarjeta" 
                            placeholder="Buscar tarjeta..."
-                           class="w-full text-sm border rounded px-3 py-2 focus:ring-1 focus:ring-orange-500">
+                           class="w-full text-sm border rounded px-3 py-2 focus:ring-1 focus:ring-blue-500">
                     <div id="resultados-tarjetas" class="absolute z-20 w-full bg-white border rounded shadow-lg mt-1 hidden" style="max-height: 200px; overflow-y: auto;">
                     </div>
                 </div>
                 
                 <!-- Info Tarjeta -->
-                <div id="info-tarjeta" class="bg-blue-50 border border-blue-200 rounded p-3 hidden">
+                <div id="info-tarjeta" class="tarjeta-info hidden">
                     <div class="text-sm space-y-2">
                         <div class="font-bold text-blue-800" id="nombre-hijo">-</div>
                         <div class="text-gray-600" id="numero-tarjeta">-</div>
                         <div class="text-center mt-3">
-                            <div class="text-lg font-bold text-orange-600" id="saldo-disponible">Gs. 0</div>
+                            <div class="text-lg font-bold text-blue-600" id="saldo-disponible">Gs. 0</div>
                             <div class="text-xs text-gray-500">Saldo Disponible</div>
                         </div>
                     </div>
@@ -71,59 +164,48 @@
             </div>
         </div>
 
-        <!-- Columna Central: Gestión de Venta, Tabla, Total -->
-    <div class="w-1/2 bg-white flex flex-col">
-            <!-- Sección de Productos Integrada -->
-            <div class="p-3 border-b flex-shrink-0">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-gray-800">Gestión de Venta</h3>
+        <!-- Columna Central: Gestión de Venta -->
+        <div class="w-1/2 bg-white flex flex-col">
+            <div class="p-4 border-b">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-gray-800">🛒 Gestión de Venta</h3>
                 </div>
                 
-
-                    
-
+                <!-- Búsqueda de productos -->
+                <div class="relative mb-2">
+                    <input type="text" 
+                           id="buscar-producto" 
+                           placeholder="🔍 Buscar productos para agregar automáticamente..."
+                           class="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    <div id="resultados-productos" class="absolute z-10 w-full bg-white border-2 border-gray-200 rounded-lg shadow-lg mt-1 hidden" style="max-height: 250px; overflow-y: auto;">
+                    </div>
+                </div>
                 
-
+                <!-- Campos ocultos para el producto seleccionado -->
+                <input type="hidden" id="descripcion-producto">
+                <input type="hidden" id="precio-producto">
+                <input type="hidden" id="cantidad-producto" value="1">
+                <div id="subtotal-preview" class="hidden"></div>
+            </div>
             
-            <!-- Tabla de Items con Búsqueda Integrada -->
+            <!-- Tabla de Items -->
             <div class="flex-1 overflow-hidden">
                 <div class="h-full overflow-y-auto">
-                    <table class="w-full text-xs">
-                        <thead class="bg-gray-50 sticky top-0">
+                    <table class="tabla-productos">
+                        <thead>
                             <tr>
-                                <th colspan="7" class="px-3 py-3 text-left border-b-2 border-gray-200">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-sm font-bold text-gray-800">🛒 Items de Venta</span>
-                                        <div class="flex-1 relative ml-4">
-                                            <input type="text" 
-                                                   id="buscar-producto" 
-                                                   placeholder="🔍 Buscar productos para agregar automáticamente..."
-                                                   class="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all">
-                                            <div id="resultados-productos" class="absolute z-10 w-full bg-white border-2 border-gray-200 rounded-lg shadow-lg mt-1 hidden" style="max-height: 250px; overflow-y: auto;">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Campos ocultos para el producto seleccionado -->
-                                    <input type="hidden" id="descripcion-producto">
-                                    <input type="hidden" id="precio-producto">
-                                    <input type="hidden" id="cantidad-producto" value="1">
-                                    <div id="subtotal-preview" class="hidden"></div>
-                                </th>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="px-2 py-2 text-left w-8">#</th>
-                                <th class="px-2 py-2 text-left">Código</th>
-                                <th class="px-2 py-2 text-left">Descripción</th>
-                                <th class="px-2 py-2 text-center w-16">Cant.</th>
-                                <th class="px-2 py-2 text-center w-20">P.Unit.</th>
-                                <th class="px-2 py-2 text-center w-24">Subtotal</th>
-                                <th class="px-2 py-2 text-center w-12">❌</th>
+                                <th class="w-8">#</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th class="text-center w-16">Cant.</th>
+                                <th class="text-center w-20">P.Unit.</th>
+                                <th class="text-center w-24">Subtotal</th>
+                                <th class="text-center w-12">❌</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-items">
                             <tr id="tabla-vacia" class="border-t">
                                 <td colspan="7" class="text-center py-12">
-                                    <div class="text-6xl opacity-20 mb-3">🛍️</div>
                                     <p class="text-gray-500 text-base font-medium">No hay items en la venta</p>
                                     <p class="text-gray-400 text-sm mt-1">Busque productos arriba y seleccione para agregar automáticamente</p>
                                 </td>
@@ -131,58 +213,59 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Total a Pagar -->
-                <div class="p-3 border-t flex-shrink-0">
-                    <div class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                        <div class="text-xs text-gray-600 mb-1" id="cantidad-items">0 items</div>
-                        <div class="text-xl font-bold text-orange-600" id="total-venta-grande">Gs. 0</div>
-                        <div class="text-xs text-gray-500 mt-1">Total a Pagar</div>
-                    </div>
+            </div>
+            
+            <!-- Total a Pagar -->
+            <div class="p-4 border-t">
+                <div class="total-pagar">
+                    <div class="text-xs text-gray-600 mb-1" id="cantidad-items">2 items</div>
+                    <div class="text-xl font-bold text-orange-600" id="total-venta-grande">Gs. 11.000</div>
+                    <div class="text-xs text-gray-500 mt-1">Total a Pagar</div>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Columna Derecha: Métodos de Pago -->
         <div class="w-1/4 bg-white border-l flex flex-col">
-            <div class="p-3 flex-1">
-                <h3 class="text-sm font-bold text-gray-800 mb-3">Métodos de Pago</h3>
-                <!-- Saldo Virtual -->
+            <div class="p-4 flex-1">
+                <h3 class="text-sm font-bold text-gray-800 mb-4">Métodos de Pago</h3>
+                
+                <!-- Saldo Tarjeta -->
                 <button id="btn-saldo-virtual" onclick="abrirModalSaldoVirtual()" disabled
-                        class="w-full bg-blue-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-blue-600 disabled:bg-blue-300 disabled:text-blue-700 text-sm transition-colors shadow-md flex items-center justify-center mb-2">
+                        class="btn-pago btn-saldo-tarjeta">
                     <span class="mr-2">💳</span>
                     <div class="flex-1 text-center">
-                        <div>Saldo Virtual</div>
+                        <div>Saldo Tarjeta</div>
                         <div class="text-xs opacity-75">F1</div>
                     </div>
                 </button>
+                
                 <!-- Pago Mixto -->
                 <button id="btn-pago-mixto" onclick="abrirModalPagoMixto()" disabled
-                        class="w-full py-3 px-3 rounded-lg font-bold text-sm transition-colors shadow-md flex items-center justify-center mb-2"
-                        style="background-color: #ea580c; color: white; border: 2px solid #c2410c;">
+                        class="btn-pago btn-pago-mixto">
                     <span class="mr-2">🔄</span>
                     <div class="flex-1 text-center">
-                        <div class="font-bold">Pago Mixto</div>
-                        <div class="text-xs opacity-90">F2</div>
+                        <div>Pago Mixto</div>
+                        <div class="text-xs opacity-75">F2</div>
                     </div>
                 </button>
+                
                 <!-- Pago Efectivo -->
                 <button id="btn-pago-efectivo" onclick="abrirModalPagoEfectivo()" disabled
-                        class="w-full bg-green-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-green-600 disabled:bg-green-300 disabled:text-green-700 text-sm transition-colors shadow-md flex items-center justify-center mb-2">
+                        class="btn-pago btn-pago-efectivo">
                     <span class="mr-2">💵</span>
                     <div class="flex-1 text-center">
                         <div>Pago Efectivo</div>
                         <div class="text-xs opacity-75">F3</div>
                     </div>
                 </button>
+                
                 <!-- Vaciar Venta -->
                 <button onclick="abrirModalVaciarVenta()"
-                        class="w-full bg-red-500 text-white py-3 px-3 rounded-lg font-bold hover:bg-red-600 text-sm transition-colors shadow-md flex items-center justify-center">
+                        class="btn-pago btn-vaciar">
                     <span class="mr-2">🗑️</span>
                     <div class="flex-1 text-center">
-                        <div>Vaciar Venta</div>
+                        <div>Vaciar</div>
                         <div class="text-xs opacity-75">ESC</div>
                     </div>
                 </button>
@@ -197,7 +280,7 @@
         <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
             <div class="text-center">
                 <div class="text-4xl mb-4">💳</div>
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Pago con Saldo Virtual</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Pago con Saldo Tarjeta</h3>
                 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                     <div class="space-y-2 text-sm">

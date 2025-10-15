@@ -96,8 +96,12 @@ WSGI_APPLICATION = 'cantina_tita.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tesis2025',
+        'USER': 'lucas',
+        'PASSWORD': 'SUSU252525',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
